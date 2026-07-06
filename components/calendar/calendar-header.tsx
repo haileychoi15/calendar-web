@@ -42,10 +42,6 @@ export function CalendarHeader({
   return (
     <header className="flex h-14 shrink-0 items-center justify-end border-b border-border px-6">
       <div className="flex items-center gap-2">
-        <Avatar size="sm">
-          <AvatarFallback className="text-xs font-medium">CY</AvatarFallback>
-        </Avatar>
-
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
@@ -101,6 +97,10 @@ export function CalendarHeader({
             <ChevronRight className="text-muted-foreground" />
           </Button>
         </div>
+
+        <Avatar>
+          <AvatarFallback className="text-sm font-medium">CY</AvatarFallback>
+        </Avatar>
       </div>
     </header>
   );

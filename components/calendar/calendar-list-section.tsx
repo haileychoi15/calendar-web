@@ -26,7 +26,7 @@ export function CalendarListSection({
           <li key={calendar.id}>
             <label
               className={cn(
-                "flex w-full cursor-pointer items-center gap-1.5 px-2 py-1.5",
+                "flex w-full cursor-pointer items-center gap-1.5 rounded-md px-2 py-1.5",
                 "transition-colors duration-default ease-out hover:bg-muted"
               )}
             >
@@ -45,7 +45,7 @@ export function CalendarListSection({
           <button
             type="button"
             className={cn(
-              "flex w-full items-center gap-1.5 px-2 py-1.5",
+              "flex w-full items-center gap-1.5 rounded-md px-2 py-1.5",
               "text-sm leading-5 tracking-tight text-muted-foreground",
               "transition-colors duration-default ease-out hover:bg-muted"
             )}

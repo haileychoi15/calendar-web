@@ -25,7 +25,7 @@ export function CalendarSidebar({
       </div>
 
       <div className="px-4 pt-2 pb-3">
-        <Button className="h-10 w-full gap-1 rounded-lg px-4 py-1">
+        <Button className="h-10 w-full gap-1 rounded-lg px-4 py-1 hover:bg-[color-mix(in_oklch,var(--primary),var(--foreground)_10%)]">
           <Plus className="size-4" />
           일정 만들기
         </Button>
