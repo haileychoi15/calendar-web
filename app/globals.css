@@ -1,21 +1,20 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "@toss/tds-colors/colors.css";
+@import "@toss/tds-colors/colors.light.css";
+@import "./toss-adaptive-dark.css";
 
 @custom-variant dark (&:is(.dark *));
 
 /* =============================================================================
    Design System Tokens
    - Typography: Pretendard (--font-pretendard from next/font/local)
-   - Colors: Primary #3182F6, Neutral Tailwind Slate
-   - Spacing: 8pt grid via default Tailwind scale (1=4, 2=8, 3=12, 4=16, 5=20,
-     6=24, 8=32, 10=40, 12=48, 16=64)
+   - Colors: Toss Design System (@toss/tds-colors) → shadcn semantic tokens
+   - Spacing: 8pt grid via default Tailwind scale
    ============================================================================= */
 
 :root {
-  /* Brand — Primary Button, Selected Date, Active State, Focus Ring only */
-  --color-brand-primary: #3182f6;
-
   /* Radius */
   --radius-button: 10px;
   --radius-input: 10px;
@@ -29,77 +28,75 @@
   --transition-duration-modal: 250ms;
   --transition-timing-default: cubic-bezier(0, 0, 0.2, 1);
 
-  /* Shadow — subtle, no large elevations */
-  --shadow-color: 15 23 42;
-
-  /* shadcn semantic colors — light (Slate neutrals) */
-  --background: #ffffff;
-  --foreground: #0f172a;
-  --card: #ffffff;
-  --card-foreground: #0f172a;
-  --popover: #ffffff;
-  --popover-foreground: #0f172a;
-  --primary: var(--color-brand-primary);
-  --primary-foreground: #ffffff;
-  --secondary: #f1f5f9;
-  --secondary-foreground: #0f172a;
-  --muted: #f1f5f9;
-  --muted-foreground: #64748b;
-  --accent: #f1f5f9;
-  --accent-foreground: #0f172a;
-  --destructive: #ef4444;
-  --destructive-foreground: #ffffff;
-  --border: #e2e8f0;
-  --input: #e2e8f0;
-  --ring: var(--color-brand-primary);
-  --chart-1: #94a3b8;
-  --chart-2: #64748b;
-  --chart-3: #475569;
-  --chart-4: #334155;
-  --chart-5: #1e293b;
-  --sidebar: #f8fafc;
-  --sidebar-foreground: #0f172a;
-  --sidebar-primary: var(--color-brand-primary);
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f1f5f9;
-  --sidebar-accent-foreground: #0f172a;
-  --sidebar-border: #e2e8f0;
-  --sidebar-ring: var(--color-brand-primary);
+  /* shadcn semantic colors → Toss tokens (light) */
+  --background: var(--lightThemeBackground);
+  --foreground: var(--grey900);
+  --card: var(--layeredBackground);
+  --card-foreground: var(--grey900);
+  --popover: var(--floatBackground);
+  --popover-foreground: var(--grey900);
+  --primary: var(--blue500);
+  --primary-foreground: var(--white);
+  --secondary: var(--grey100);
+  --secondary-foreground: var(--grey900);
+  --muted: var(--grey100);
+  --muted-foreground: var(--grey500);
+  --accent: var(--grey100);
+  --accent-foreground: var(--grey900);
+  --destructive: var(--red500);
+  --destructive-foreground: var(--white);
+  --border: var(--lightThemeHairlineBorder);
+  --input: var(--grey200);
+  --ring: var(--blue500);
+  --chart-1: var(--grey400);
+  --chart-2: var(--grey500);
+  --chart-3: var(--grey600);
+  --chart-4: var(--grey700);
+  --chart-5: var(--grey800);
+  --sidebar: var(--greyBackground);
+  --sidebar-foreground: var(--grey900);
+  --sidebar-primary: var(--blue500);
+  --sidebar-primary-foreground: var(--white);
+  --sidebar-accent: var(--grey100);
+  --sidebar-accent-foreground: var(--grey900);
+  --sidebar-border: var(--lightThemeHairlineBorder);
+  --sidebar-ring: var(--blue500);
 }
 
 .dark {
-  --background: #020617;
-  --foreground: #f8fafc;
-  --card: #0f172a;
-  --card-foreground: #f8fafc;
-  --popover: #0f172a;
-  --popover-foreground: #f8fafc;
-  --primary: var(--color-brand-primary);
-  --primary-foreground: #ffffff;
-  --secondary: #1e293b;
-  --secondary-foreground: #f8fafc;
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8;
-  --accent: #1e293b;
-  --accent-foreground: #f8fafc;
-  --destructive: #f87171;
-  --destructive-foreground: #0f172a;
-  --border: #334155;
-  --input: #334155;
-  --ring: var(--color-brand-primary);
-  --chart-1: #94a3b8;
-  --chart-2: #64748b;
-  --chart-3: #475569;
-  --chart-4: #cbd5e1;
-  --chart-5: #e2e8f0;
-  --sidebar: #0f172a;
-  --sidebar-foreground: #f8fafc;
-  --sidebar-primary: var(--color-brand-primary);
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #1e293b;
-  --sidebar-accent-foreground: #f8fafc;
-  --sidebar-border: #334155;
-  --sidebar-ring: var(--color-brand-primary);
+  /* shadcn semantic colors → Toss tokens (dark) */
+  --background: var(--darkThemeBackground);
+  --foreground: var(--darkThemeGrey900);
+  --card: var(--darkThemeBackgroundLevel01);
+  --card-foreground: var(--darkThemeGrey900);
+  --popover: var(--darkFloatBackground);
+  --popover-foreground: var(--darkThemeGrey900);
+  --primary: var(--darkThemeBlue500);
+  --primary-foreground: var(--white);
+  --secondary: var(--darkThemeGrey100);
+  --secondary-foreground: var(--darkThemeGrey900);
+  --muted: var(--darkThemeGrey100);
+  --muted-foreground: var(--darkThemeGrey500);
+  --accent: var(--darkThemeGrey100);
+  --accent-foreground: var(--darkThemeGrey900);
+  --destructive: var(--darkThemeRed500);
+  --destructive-foreground: var(--darkThemeGrey900);
+  --border: var(--darkThemeHairlineBorder);
+  --input: var(--darkThemeGrey200);
+  --ring: var(--darkThemeBlue500);
+  --chart-1: var(--darkThemeGrey400);
+  --chart-2: var(--darkThemeGrey500);
+  --chart-3: var(--darkThemeGrey600);
+  --chart-4: var(--darkThemeGrey700);
+  --chart-5: var(--darkThemeGrey800);
+  --sidebar: var(--darkGreyBackground);
+  --sidebar-foreground: var(--darkThemeGrey900);
+  --sidebar-primary: var(--darkThemeBlue500);
+  --sidebar-primary-foreground: var(--white);
+  --sidebar-accent: var(--darkThemeGrey100);
+  --sidebar-accent-foreground: var(--darkThemeGrey900);
+  --sidebar-border: var(--darkThemeHairlineBorder);
+  --sidebar-ring: var(--darkThemeBlue500);
 }
 
 @theme inline {
@@ -141,9 +138,15 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --color-brand-primary: var(--color-brand-primary);
 
-  /* Radius — maps shadcn scale to component tokens */
+  /* Toss palette — calendar identity colors */
+  --color-toss-blue-500: var(--blue500);
+  --color-toss-teal-500: var(--teal500);
+  --color-toss-orange-500: var(--orange500);
+  --color-toss-red-500: var(--red500);
+  --color-toss-purple-500: var(--purple500);
+
+  /* Radius */
   --radius-sm: 6px;
   --radius-md: 8px;
   --radius-lg: var(--radius-button);
@@ -156,11 +159,11 @@
   --radius-card: var(--radius-card);
   --radius-dialog: var(--radius-dialog);
 
-  /* Shadow — capped at md for a calm, Notion Calendar-like feel */
-  --shadow-xs: 0 1px 2px 0 rgb(var(--shadow-color) / 0.04);
-  --shadow-sm: 0 1px 3px 0 rgb(var(--shadow-color) / 0.05);
-  --shadow: 0 1px 3px 0 rgb(var(--shadow-color) / 0.06);
-  --shadow-md: 0 2px 6px -1px rgb(var(--shadow-color) / 0.06);
+  /* Shadow — subtle, Toss grey based */
+  --shadow-xs: 0 1px 2px 0 color-mix(in srgb, var(--grey900) 4%, transparent);
+  --shadow-sm: 0 1px 3px 0 color-mix(in srgb, var(--grey900) 5%, transparent);
+  --shadow: 0 1px 3px 0 color-mix(in srgb, var(--grey900) 6%, transparent);
+  --shadow-md: 0 2px 6px -1px color-mix(in srgb, var(--grey900) 6%, transparent);
   --shadow-lg: var(--shadow-md);
   --shadow-xl: var(--shadow-md);
   --shadow-2xl: var(--shadow-md);
