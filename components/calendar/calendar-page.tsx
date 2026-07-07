@@ -1,7 +1,7 @@
 "use client";
 
 import { CalendarHeader } from "@/components/calendar/calendar-header";
-import { CalendarMainPlaceholder } from "@/components/calendar/calendar-main-placeholder";
+import { CalendarWeekView } from "@/components/calendar/calendar-week-view";
 import { CalendarSidebar } from "@/components/calendar/calendar-sidebar";
 import {
   goToNextWeek,
@@ -27,7 +27,7 @@ export function CalendarPage() {
           }
           onNextWeek={() => setCurrentDate((date) => goToNextWeek(date))}
         />
-        <CalendarMainPlaceholder currentDate={currentDate} />
+        <CalendarWeekView currentDate={currentDate} />
       </div>
     </div>
   );
