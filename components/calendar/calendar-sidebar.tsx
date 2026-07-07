@@ -10,12 +10,16 @@ import { MY_CALENDARS, OTHER_CALENDARS } from "@/lib/calendar-data";
 type CalendarSidebarProps = {
   currentDate: Date;
   weekStart: Date;
+  visiblePersonIds: ReadonlySet<string>;
+  onToggleCalendarVisibility: (calendarId: string, visible: boolean) => void;
   onDateSelect: (date: Date) => void;
 };
 
 export function CalendarSidebar({
   currentDate,
   weekStart,
+  visiblePersonIds,
+  onToggleCalendarVisibility,
   onDateSelect,
 }: CalendarSidebarProps) {
   return (
@@ -40,8 +44,18 @@ export function CalendarSidebar({
       />
 
       <div className="flex flex-1 flex-col gap-4 overflow-y-auto px-2 py-4">
-        <CalendarListSection title="내 캘린더" calendars={MY_CALENDARS} />
-        <CalendarListSection title="다른 캘린더" calendars={OTHER_CALENDARS} />
+        <CalendarListSection
+          title="내 캘린더"
+          calendars={MY_CALENDARS}
+          visibleCalendarIds={visiblePersonIds}
+          onToggleCalendar={onToggleCalendarVisibility}
+        />
+        <CalendarListSection
+          title="다른 캘린더"
+          calendars={OTHER_CALENDARS}
+          visibleCalendarIds={visiblePersonIds}
+          onToggleCalendar={onToggleCalendarVisibility}
+        />
       </div>
     </aside>
   );

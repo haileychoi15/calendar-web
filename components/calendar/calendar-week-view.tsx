@@ -2,7 +2,17 @@
 
 import { useEffect, useMemo, useRef } from "react";
 
+import {
+  CalendarAllDayEventChip,
+  CalendarEventBlock,
+} from "@/components/calendar/calendar-event-block";
 import { useKstNow } from "@/hooks/use-kst-now";
+import {
+  DEFAULT_PERSON_ID,
+  getAllDayEventsForDate,
+  getTimedEventsForDate,
+} from "@/lib/calendar-events";
+import { computeTimedEventLayouts } from "@/lib/calendar-event-overlap";
 import {
   formatHourLabel,
   formatNowBadge,
@@ -23,6 +33,8 @@ import { cn } from "@/lib/utils";
 type CalendarWeekViewProps = {
   weekStart: Date;
   highlight: { date: Date; nonce: number } | null;
+  visiblePersonIds: ReadonlySet<string>;
+  personId?: string;
 };
 
 const HOURS = Array.from({ length: HOURS_IN_DAY }, (_, hour) => hour);
@@ -101,11 +113,32 @@ function NowIndicator({ now }: NowIndicatorProps) {
   );
 }
 
-export function CalendarWeekView({ weekStart, highlight }: CalendarWeekViewProps) {
+export function CalendarWeekView({
+  weekStart,
+  highlight,
+  visiblePersonIds,
+  personId = DEFAULT_PERSON_ID,
+}: CalendarWeekViewProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const now = useKstNow();
   const weekStartKey = toKstDateKey(weekStart);
+  const visiblePersonIdsKey = [...visiblePersonIds].sort().join(",");
   const weekDays = useMemo(() => getWeekDays(weekStart), [weekStartKey, weekStart]);
+  const timedLayoutsByDate = useMemo(() => {
+    const map = new Map<string, ReturnType<typeof computeTimedEventLayouts>>();
+
+    for (const date of weekDays) {
+      const dateKey = toKstDateKey(date);
+      const timedEvents = getTimedEventsForDate(
+        date,
+        undefined,
+        visiblePersonIds
+      );
+      map.set(dateKey, computeTimedEventLayouts(timedEvents));
+    }
+
+    return map;
+  }, [weekDays, visiblePersonIds, visiblePersonIdsKey]);
 
   useEffect(() => {
     const container = scrollRef.current;
@@ -136,13 +169,20 @@ export function CalendarWeekView({ weekStart, highlight }: CalendarWeekViewProps
         </div>
 
         <div className="grid grid-cols-[var(--time-gutter)_1fr] border-t border-border">
-          <div className="h-8 border-r border-border" />
-          <div className="grid h-8 grid-cols-7">
-            {weekDays.map((date) => (
+          <div className="min-h-8 border-r border-border" />
+          <div className="grid min-h-8 auto-rows-min grid-cols-7">
+            {weekDays.map((date) => {
+              const allDayEvents = getAllDayEventsForDate(
+                date,
+                undefined,
+                visiblePersonIds
+              );
+
+              return (
               <div
                 key={`allday-${date.toISOString()}`}
                 className={cn(
-                  "relative border-r border-border last:border-r-0",
+                  "relative flex flex-col gap-0.5 overflow-hidden border-r border-border p-0.5 last:border-r-0",
                   getColumnClassName(date)
                 )}
               >
@@ -152,8 +192,16 @@ export function CalendarWeekView({ weekStart, highlight }: CalendarWeekViewProps
                     className="pointer-events-none absolute inset-0 bg-primary/16 animate-[weekColumnFlash_1.35s_forwards]"
                   />
                 )}
+                {allDayEvents.map((event) => (
+                  <CalendarAllDayEventChip
+                    key={event.id}
+                    event={event}
+                    viewerPersonId={personId}
+                  />
+                ))}
               </div>
-            ))}
+            );
+            })}
           </div>
         </div>
       </div>
@@ -176,7 +224,16 @@ export function CalendarWeekView({ weekStart, highlight }: CalendarWeekViewProps
           </div>
 
           <div className="relative grid grid-cols-7">
-            {weekDays.map((date) => (
+            {weekDays.map((date) => {
+              const dateKey = toKstDateKey(date);
+              const timedEvents = getTimedEventsForDate(
+                date,
+                undefined,
+                visiblePersonIds
+              );
+              const timedLayouts = timedLayoutsByDate.get(dateKey)!;
+
+              return (
               <div
                 key={`grid-${date.toISOString()}`}
                 className={cn(
@@ -184,9 +241,9 @@ export function CalendarWeekView({ weekStart, highlight }: CalendarWeekViewProps
                   getColumnClassName(date)
                 )}
               >
-                {highlight && toKstDateKey(highlight.date) === toKstDateKey(date) && (
+                {highlight && toKstDateKey(highlight.date) === dateKey && (
                   <div
-                    key={`${toKstDateKey(date)}-${highlight.nonce}-body`}
+                    key={`${dateKey}-${highlight.nonce}-body`}
                     className="pointer-events-none absolute inset-0 z-10 bg-primary/16 animate-[weekColumnFlash_1.35s_forwards]"
                   />
                 )}
@@ -197,8 +254,17 @@ export function CalendarWeekView({ weekStart, highlight }: CalendarWeekViewProps
                     style={{ height: HOUR_SLOT_HEIGHT }}
                   />
                 ))}
+                {timedEvents.map((event) => (
+                  <CalendarEventBlock
+                    key={event.id}
+                    event={event}
+                    layout={timedLayouts.get(event.id)}
+                    viewerPersonId={personId}
+                  />
+                ))}
               </div>
-            ))}
+            );
+            })}
           </div>
 
           <NowIndicator now={now} />

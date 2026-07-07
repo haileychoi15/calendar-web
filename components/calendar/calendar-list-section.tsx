@@ -9,11 +9,15 @@ import { cn } from "@/lib/utils";
 type CalendarListSectionProps = {
   title: string;
   calendars: CalendarItem[];
+  visibleCalendarIds: ReadonlySet<string>;
+  onToggleCalendar: (calendarId: string, visible: boolean) => void;
 };
 
 export function CalendarListSection({
   title,
   calendars,
+  visibleCalendarIds,
+  onToggleCalendar,
 }: CalendarListSectionProps) {
   return (
     <section className="flex w-full flex-col gap-1">
@@ -32,10 +36,20 @@ export function CalendarListSection({
             >
               <CalendarColorCheckbox
                 color={calendar.color}
-                defaultChecked
+                checkboxColor={calendar.checkboxColor}
+                checked={visibleCalendarIds.has(calendar.id)}
+                onCheckedChange={(checked) =>
+                  onToggleCalendar(calendar.id, checked)
+                }
               />
-              <span className="min-w-0 flex-1 truncate text-sm leading-5 tracking-tight text-foreground">
-                {calendar.name}
+              <span className="min-w-0 flex-1 truncate text-sm leading-5 tracking-tight">
+                <span className="text-foreground">{calendar.name}</span>
+                {calendar.team && (
+                  <>
+                    <span className="text-xs text-muted-foreground"> · </span>
+                    <span className="text-xs text-muted-foreground">{calendar.team}</span>
+                  </>
+                )}
               </span>
             </label>
           </li>

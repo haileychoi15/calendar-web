@@ -78,11 +78,25 @@ export function getWeekStart(date: Date) {
 
 export function toKstDateKey(date: Date) {
   const { year, month, day } = getKstParts(date);
-  return `${year}-${month}-${day}`;
+  const paddedMonth = String(month).padStart(2, "0");
+  const paddedDay = String(day).padStart(2, "0");
+  return `${year}-${paddedMonth}-${paddedDay}`;
 }
 
 export function isSameKstDay(a: Date, b: Date) {
   return toKstDateKey(a) === toKstDateKey(b);
+}
+
+export function isDateInWeek(date: Date, weekStart: Date) {
+  const weekDays = getWeekDays(weekStart);
+
+  return weekDays.some((weekDay) => toKstDateKey(weekDay) === toKstDateKey(date));
+}
+
+export function isWeekRowActive(dates: Date[], weekStart: Date) {
+  const weekStartKey = toKstDateKey(weekStart);
+
+  return dates.some((date) => toKstDateKey(date) === weekStartKey);
 }
 
 export function isTodayKst(date: Date) {

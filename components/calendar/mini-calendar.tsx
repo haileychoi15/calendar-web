@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ko } from "react-day-picker/locale";
-import type { DayButton } from "react-day-picker";
+import type { DayButton, WeekProps } from "react-day-picker";
 
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import {
   goToNextMonth,
   goToPreviousMonth,
 } from "@/lib/calendar-date";
-import { getWeekMonthAnchor, toKstDateKey } from "@/lib/calendar-week";
+import { getWeekMonthAnchor, isWeekRowActive, toKstDateKey } from "@/lib/calendar-week";
 import { cn } from "@/lib/utils";
 
 type MiniCalendarProps = {
@@ -20,6 +20,33 @@ type MiniCalendarProps = {
   weekStart: Date;
   onDateSelect: (date: Date) => void;
 };
+
+function createMiniCalendarWeek(weekStart: Date) {
+  return function MiniCalendarWeek({
+    week,
+    className,
+    children,
+    ...props
+  }: WeekProps) {
+    const isActiveWeek = isWeekRowActive(
+      week.days.map((day) => day.date),
+      weekStart
+    );
+
+    return (
+      <tr
+        className={cn(
+          className,
+          isActiveWeek &&
+            "[&_td]:bg-muted [&_td:first-child]:rounded-l-md [&_td:last-child]:rounded-r-md"
+        )}
+        {...props}
+      >
+        {children}
+      </tr>
+    );
+  };
+}
 
 function MiniCalendarDayButton({
   day,
@@ -46,7 +73,7 @@ function MiniCalendarDayButton({
       size="icon"
       data-day={day.date.toLocaleDateString(ko.code)}
       className={cn(
-        "relative isolate z-10 flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 rounded-(--cell-radius) border-0 p-0 text-xs leading-none font-medium",
+        "relative isolate z-10 flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 rounded-(--cell-radius) border-0 p-0 text-[13px] leading-none font-medium",
         "hover:bg-muted hover:text-foreground",
         "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
         modifiers.today &&
@@ -73,6 +100,11 @@ export function MiniCalendar({
   useEffect(() => {
     setMonth(getWeekMonthAnchor(weekStart));
   }, [weekStartKey, weekStart]);
+
+  const MiniCalendarWeek = useMemo(
+    () => createMiniCalendarWeek(weekStart),
+    [weekStartKey, weekStart]
+  );
 
   return (
     <div className="flex w-full flex-col items-center px-2 py-4">
@@ -127,12 +159,13 @@ export function MiniCalendar({
             month_grid: "w-full [&_tbody>tr+tr]:mt-1",
             weekdays: "gap-0",
             weekday:
-              "flex-1 pb-2 text-xs font-medium text-muted-foreground select-none",
+              "flex-1 pb-2 text-[13px] font-medium text-muted-foreground select-none",
             week: "gap-0",
             day: "p-0",
             today: "",
           }}
           components={{
+            Week: MiniCalendarWeek,
             DayButton: MiniCalendarDayButton,
           }}
         />

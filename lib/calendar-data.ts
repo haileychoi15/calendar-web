@@ -1,3 +1,5 @@
+import { DEFAULT_PERSON_ID, getPeople } from "@/lib/calendar-events";
+
 export type CalendarColor =
   | "blue"
   | "teal"
@@ -8,7 +10,10 @@ export type CalendarColor =
 export type CalendarItem = {
   id: string;
   name: string;
-  color: CalendarColor;
+  team?: string;
+  color?: CalendarColor;
+  /** Clean sidebar checkbox color (Toss palette). */
+  checkboxColor?: string;
 };
 
 export const CALENDAR_COLOR_CLASSES: Record<
@@ -40,18 +45,38 @@ export const CALENDAR_COLOR_CLASSES: Record<
   },
 };
 
-export const MY_CALENDARS: CalendarItem[] = [
-  { id: "my-1", name: "김헤일리", color: "blue" },
-  { id: "my-2", name: "Product Team", color: "rose" },
-  { id: "my-3", name: "생일", color: "orange" },
-  { id: "my-4", name: "공휴일", color: "violet" },
-  { id: "my-5", name: "휴가", color: "teal" },
-];
+/** Sidebar checkbox colors — Toss 300/400 tokens for clear, non-muddy hues. */
+const PERSON_CHECKBOX_COLORS: Record<string, string> = {
+  po1: "var(--purple400)",
+  designer1: "var(--blue300)",
+  fe1: "var(--teal400)",
+  be1: "var(--orange400)",
+  sales1: "var(--red400)",
+  marketer1: "var(--green400)",
+};
 
-export const OTHER_CALENDARS: CalendarItem[] = [
-  { id: "other-1", name: "Product KR Team", color: "blue" },
-  { id: "other-2", name: "Holidays in South Korea", color: "rose" },
-  { id: "other-3", name: "Flex", color: "teal" },
-  { id: "other-4", name: "Company Events", color: "orange" },
-  { id: "other-5", name: "Design Review", color: "violet" },
-];
+const PERSON_TEAMS: Record<string, string> = {
+  designer1: "Product",
+  po1: "Product",
+  fe1: "Product",
+  be1: "Product",
+  sales1: "Marketing",
+  marketer1: "Sales",
+};
+
+function personToCalendarItem(person: ReturnType<typeof getPeople>[number]): CalendarItem {
+  return {
+    id: person.id,
+    name: person.name,
+    team: PERSON_TEAMS[person.id],
+    checkboxColor: PERSON_CHECKBOX_COLORS[person.id] ?? "var(--blue400)",
+  };
+}
+
+export const MY_CALENDARS: CalendarItem[] = getPeople()
+  .filter((person) => person.id === DEFAULT_PERSON_ID)
+  .map(personToCalendarItem);
+
+export const OTHER_CALENDARS: CalendarItem[] = getPeople()
+  .filter((person) => person.id !== DEFAULT_PERSON_ID)
+  .map(personToCalendarItem);
