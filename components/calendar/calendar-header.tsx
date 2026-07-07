@@ -42,13 +42,28 @@ export function CalendarHeader({
   return (
     <header className="flex h-14 shrink-0 items-center justify-end border-b border-border px-6">
       <div className="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          size="default"
+          className={cn(
+            "h-8 rounded-md border border-border bg-transparent px-2.5",
+            HEADER_BUTTON_CLASS
+          )}
+          onClick={onToday}
+        >
+          오늘
+        </Button>
+
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
               <Button
-                variant="secondary"
+                variant="ghost"
                 size="default"
-                className={cn("min-w-14 gap-1", HEADER_BUTTON_CLASS)}
+                className={cn(
+                  "min-w-14 h-8 gap-1 rounded-md border border-border bg-transparent px-2.5",
+                  HEADER_BUTTON_CLASS
+                )}
               >
                 {selectedView.label}
                 <ChevronDown className="size-3.5 text-muted-foreground" />
@@ -69,15 +84,6 @@ export function CalendarHeader({
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
-
-        <Button
-          variant="secondary"
-          size="default"
-          className={HEADER_BUTTON_CLASS}
-          onClick={onToday}
-        >
-          오늘
-        </Button>
 
         <div className="flex items-center">
           <Button

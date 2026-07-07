@@ -17,7 +17,7 @@ export function CalendarListSection({
 }: CalendarListSectionProps) {
   return (
     <section className="flex w-full flex-col gap-1">
-      <h2 className="px-2 py-1.5 text-sm font-medium leading-5 tracking-tight text-foreground">
+      <h2 className="px-2 py-1.5 text-sm font-semibold leading-5 tracking-tight text-foreground">
         {title}
       </h2>
 

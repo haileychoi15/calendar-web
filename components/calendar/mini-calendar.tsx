@@ -44,10 +44,11 @@ function MiniCalendarDayButton({
       size="icon"
       data-day={day.date.toLocaleDateString(ko.code)}
       className={cn(
-        "relative isolate z-10 flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 rounded-(--cell-radius) border-0 p-0 text-xs leading-none font-normal",
+        "relative isolate z-10 flex aspect-square size-auto w-full min-w-(--cell-size) flex-col gap-1 rounded-(--cell-radius) border-0 p-0 text-xs leading-none font-medium",
         "hover:bg-muted hover:text-foreground",
         "focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50",
-        modifiers.today && "bg-primary text-primary-foreground hover:bg-primary/90",
+        modifiers.today &&
+          "bg-primary text-primary-foreground hover:bg-primary/90 hover:text-primary-foreground",
         isSelected &&
           !modifiers.today &&
           "bg-primary/10 text-primary hover:bg-primary/15 hover:text-primary",
@@ -69,7 +70,7 @@ export function MiniCalendar({ currentDate, onDateSelect }: MiniCalendarProps) {
   return (
     <div className="flex w-full flex-col items-center px-2 py-4">
       <div className="mb-1.5 flex h-8 w-full items-center gap-1.5 px-2 py-0.5">
-        <p className="min-w-0 flex-1 text-sm font-medium leading-5 tracking-tight text-foreground">
+        <p className="min-w-0 flex-1 text-sm font-semibold leading-5 tracking-tight text-foreground">
           {formatMonthTitle(month)}
         </p>
         <div className="flex items-center">
@@ -116,11 +117,11 @@ export function MiniCalendar({ currentDate, onDateSelect }: MiniCalendarProps) {
             month: "w-full gap-0",
             month_caption: "hidden",
             nav: "hidden",
-            month_grid: "w-full",
+            month_grid: "w-full [&_tbody>tr+tr]:mt-1",
             weekdays: "gap-0",
             weekday:
-              "flex-1 text-xs font-normal text-muted-foreground select-none",
-            week: "mt-1 gap-0",
+              "flex-1 pb-2 text-xs font-medium text-muted-foreground select-none",
+            week: "gap-0",
             day: "p-0",
             today: "",
           }}

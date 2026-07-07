@@ -19,7 +19,7 @@ export function CalendarSidebar({
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-background">
       <div className="px-4 py-3">
-        <h1 className="text-xl font-medium leading-7 tracking-tight text-foreground">
+        <h1 className="text-xl font-semibold leading-7 tracking-tight text-foreground">
           Calendar
         </h1>
       </div>
