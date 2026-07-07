@@ -152,64 +152,65 @@ export function CalendarWeekView({
       className="flex min-h-0 min-w-0 flex-1 flex-col bg-background"
       style={{ ["--time-gutter" as string]: TIME_GUTTER_WIDTH }}
     >
-      <div className="sticky top-0 z-10 shrink-0 border-b border-border bg-background">
-        <div className="grid grid-cols-[var(--time-gutter)_1fr]">
-          <div className="flex h-10 items-center justify-center text-xs text-muted-foreground">
-            GMT+9
-          </div>
-          <div className="grid grid-cols-7">
-            {weekDays.map((date) => (
-              <WeekdayHeaderCell
-                key={date.toISOString()}
-                date={date}
-                highlight={highlight}
-              />
-            ))}
-          </div>
-        </div>
-
-        <div className="grid grid-cols-[var(--time-gutter)_1fr] border-t border-border">
-          <div className="min-h-8 border-r border-border" />
-          <div className="grid min-h-8 auto-rows-min grid-cols-7">
-            {weekDays.map((date) => {
-              const allDayEvents = getAllDayEventsForDate(
-                date,
-                undefined,
-                visiblePersonIds
-              );
-
-              return (
-              <div
-                key={`allday-${date.toISOString()}`}
-                className={cn(
-                  "relative flex flex-col gap-0.5 overflow-hidden border-r border-border p-0.5 last:border-r-0",
-                  getColumnClassName(date)
-                )}
-              >
-                {highlight && toKstDateKey(highlight.date) === toKstDateKey(date) && (
-                  <div
-                    key={`${toKstDateKey(date)}-${highlight.nonce}-allday`}
-                    className="pointer-events-none absolute inset-0 bg-primary/16 animate-[weekColumnFlash_1.35s_forwards]"
-                  />
-                )}
-                {allDayEvents.map((event) => (
-                  <CalendarAllDayEventChip
-                    key={event.id}
-                    event={event}
-                    viewerPersonId={personId}
-                  />
-                ))}
-              </div>
-            );
-            })}
-          </div>
-        </div>
-      </div>
-
       <div
         ref={scrollRef}
         className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto"
       >
+        <div className="sticky top-0 z-30 shrink-0 border-b border-border bg-background">
+          <div className="grid grid-cols-[var(--time-gutter)_1fr]">
+            <div className="flex h-10 items-center justify-center text-xs text-muted-foreground">
+              GMT+9
+            </div>
+            <div className="grid grid-cols-7">
+              {weekDays.map((date) => (
+                <WeekdayHeaderCell
+                  key={date.toISOString()}
+                  date={date}
+                  highlight={highlight}
+                />
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-[var(--time-gutter)_1fr] border-t border-border">
+            <div className="min-h-8 border-r border-border" />
+            <div className="grid min-h-8 grid-cols-7">
+              {weekDays.map((date) => {
+                const allDayEvents = getAllDayEventsForDate(
+                  date,
+                  undefined,
+                  visiblePersonIds
+                );
+
+                return (
+                  <div
+                    key={`allday-${date.toISOString()}`}
+                    className={cn(
+                      "relative flex min-h-8 flex-col gap-0.5 border-r border-border p-0.5 last:border-r-0",
+                      getColumnClassName(date)
+                    )}
+                  >
+                    {highlight &&
+                      toKstDateKey(highlight.date) === toKstDateKey(date) && (
+                        <div
+                          key={`${toKstDateKey(date)}-${highlight.nonce}-allday`}
+                          className="pointer-events-none absolute inset-0 bg-primary/16 animate-[weekColumnFlash_1.35s_forwards]"
+                        />
+                      )}
+                    {allDayEvents.map((event) => (
+                      <CalendarAllDayEventChip
+                        key={event.id}
+                        event={event}
+                        viewerPersonId={personId}
+                      />
+                    ))}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
         <div className="relative grid grid-cols-[var(--time-gutter)_1fr]">
           <div className="border-r border-border">
             {HOURS.map((hour) => (
@@ -234,36 +235,36 @@ export function CalendarWeekView({
               const timedLayouts = timedLayoutsByDate.get(dateKey)!;
 
               return (
-              <div
-                key={`grid-${date.toISOString()}`}
-                className={cn(
-                  "relative border-r border-border last:border-r-0",
-                  getColumnClassName(date)
-                )}
-              >
-                {highlight && toKstDateKey(highlight.date) === dateKey && (
-                  <div
-                    key={`${dateKey}-${highlight.nonce}-body`}
-                    className="pointer-events-none absolute inset-0 z-10 bg-primary/16 animate-[weekColumnFlash_1.35s_forwards]"
-                  />
-                )}
-                {HOURS.map((hour) => (
-                  <div
-                    key={hour}
-                    className="border-b border-border"
-                    style={{ height: HOUR_SLOT_HEIGHT }}
-                  />
-                ))}
-                {timedEvents.map((event) => (
-                  <CalendarEventBlock
-                    key={event.id}
-                    event={event}
-                    layout={timedLayouts.get(event.id)}
-                    viewerPersonId={personId}
-                  />
-                ))}
-              </div>
-            );
+                <div
+                  key={`grid-${date.toISOString()}`}
+                  className={cn(
+                    "relative border-r border-border last:border-r-0",
+                    getColumnClassName(date)
+                  )}
+                >
+                  {highlight && toKstDateKey(highlight.date) === dateKey && (
+                    <div
+                      key={`${dateKey}-${highlight.nonce}-body`}
+                      className="pointer-events-none absolute inset-0 z-10 bg-primary/16 animate-[weekColumnFlash_1.35s_forwards]"
+                    />
+                  )}
+                  {HOURS.map((hour) => (
+                    <div
+                      key={hour}
+                      className="border-b border-border"
+                      style={{ height: HOUR_SLOT_HEIGHT }}
+                    />
+                  ))}
+                  {timedEvents.map((event) => (
+                    <CalendarEventBlock
+                      key={event.id}
+                      event={event}
+                      layout={timedLayouts.get(event.id)}
+                      viewerPersonId={personId}
+                    />
+                  ))}
+                </div>
+              );
             })}
           </div>
 

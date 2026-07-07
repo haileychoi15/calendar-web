@@ -1,24 +1,20 @@
 import { Briefcase, Palmtree } from "lucide-react";
 
+import { EVENT_RIGHT_INSET_PX, type TimedEventLayout } from "@/lib/calendar-event-overlap";
 import type { CalendarEvent } from "@/lib/calendar-events";
 import {
   DEFAULT_PERSON_ID,
   formatEventTimeLine,
   getEventBlockAppearance,
   getEventLayout,
+  getPersonById,
   isShortEvent,
 } from "@/lib/calendar-events";
 import { cn } from "@/lib/utils";
 
 type CalendarEventBlockProps = {
   event: CalendarEvent;
-  layout?: {
-    top: number;
-    height: number;
-    leftPercent: number;
-    widthPercent: number;
-    zIndex: number;
-  };
+  layout?: TimedEventLayout;
   viewerPersonId?: string;
 };
 
@@ -26,10 +22,12 @@ function EventTitleRow({
   event,
   appearance,
   compact,
+  label,
 }: {
   event: CalendarEvent;
   appearance: ReturnType<typeof getEventBlockAppearance>;
   compact?: boolean;
+  label?: string;
 }) {
   const iconClass = compact ? "size-2.5 shrink-0" : "size-3 shrink-0";
 
@@ -41,9 +39,15 @@ function EventTitleRow({
       {appearance.showVacationIcon && (
         <Palmtree className={iconClass} aria-hidden />
       )}
-      <span className="truncate">{event.title}</span>
+      <span className="truncate">{label ?? event.title}</span>
     </div>
   );
+}
+
+function formatAllDayEventLabel(event: CalendarEvent) {
+  const person = getPersonById(event.personId);
+  if (!person) return event.title;
+  return `[${person.name}] ${event.title}`;
 }
 
 export function CalendarEventBlock({
@@ -53,11 +57,11 @@ export function CalendarEventBlock({
 }: CalendarEventBlockProps) {
   const baseLayout = layout ?? {
     ...getEventLayout(event),
-    leftPercent: 1.5,
-    widthPercent: 97,
+    leftPercent: 0,
+    rightInsetPx: EVENT_RIGHT_INSET_PX,
     zIndex: 20,
   };
-  const { top, height, leftPercent, widthPercent, zIndex } = baseLayout;
+  const { top, height, leftPercent, rightInsetPx, zIndex } = baseLayout;
   const appearance = getEventBlockAppearance(event, viewerPersonId);
   const short = isShortEvent(event);
   const showTime = !short && height >= 40;
@@ -72,7 +76,7 @@ export function CalendarEventBlock({
         top,
         height,
         left: `${leftPercent}%`,
-        width: `${widthPercent}%`,
+        right: rightInsetPx,
         zIndex,
         backgroundColor: appearance.backgroundColor,
         color: appearance.color,
@@ -99,18 +103,18 @@ export function CalendarAllDayEventChip({
   viewerPersonId = DEFAULT_PERSON_ID,
 }: CalendarAllDayEventChipProps) {
   const appearance = getEventBlockAppearance(event, viewerPersonId);
+  const label = formatAllDayEventLabel(event);
 
   return (
     <div
-      className="min-w-0 overflow-hidden rounded-md px-1.5 py-0.5 text-[10px] leading-tight font-medium"
+      className="relative z-10 min-h-6 min-w-0 shrink-0 overflow-hidden rounded-md border-[1.5px] border-white px-1.5 py-0.5 text-xs leading-tight font-medium"
       style={{
         backgroundColor: appearance.backgroundColor,
         color: appearance.color,
-        border: appearance.border,
       }}
-      title={event.title}
+      title={label}
     >
-      <EventTitleRow event={event} appearance={appearance} compact />
+      <EventTitleRow event={event} appearance={appearance} label={label} />
     </div>
   );
 }

@@ -6,7 +6,7 @@ export type TimedEventLayout = {
   top: number;
   height: number;
   leftPercent: number;
-  widthPercent: number;
+  rightInsetPx: number;
   zIndex: number;
 };
 
@@ -20,10 +20,10 @@ type ColumnPlacement = {
   totalColumns: number;
 };
 
-const HORIZONTAL_INSET_PERCENT = 1.5;
+/** Right gutter between event block and day column edge (8pt grid). */
+export const EVENT_RIGHT_INSET_PX = 8;
 /** Per-column right shift for staggered overlap (capped when many events share a slot). */
 const CASCADE_OFFSET_PERCENT = 22;
-const MIN_BLOCK_WIDTH_PERCENT = 18;
 const BASE_Z_INDEX = 20;
 
 function getEventMinutes(event: CalendarEvent): EventMinutes {
@@ -119,25 +119,22 @@ function layoutCluster(cluster: CalendarEvent[]) {
 }
 
 function getCascadeOffset(totalColumns: number) {
-  const availableWidth = 100 - HORIZONTAL_INSET_PERCENT * 2;
-  return Math.min(CASCADE_OFFSET_PERCENT, availableWidth / totalColumns);
+  return Math.min(CASCADE_OFFSET_PERCENT, 100 / totalColumns);
 }
 
-/** Staggered overlap: each column shifts right; width fills the remaining space. */
+/** Staggered overlap: each column shifts right; right edge aligns at column - 8px. */
 function toTimedEventLayout(
   event: CalendarEvent,
   placement: ColumnPlacement
 ): TimedEventLayout {
   const base = getEventLayout(event);
   const cascadeOffset = getCascadeOffset(placement.totalColumns);
-  const leftPercent =
-    placement.column * cascadeOffset + HORIZONTAL_INSET_PERCENT;
-  const widthPercent = 100 - leftPercent - HORIZONTAL_INSET_PERCENT;
+  const leftPercent = placement.column * cascadeOffset;
 
   return {
     ...base,
     leftPercent,
-    widthPercent: Math.max(widthPercent, MIN_BLOCK_WIDTH_PERCENT),
+    rightInsetPx: EVENT_RIGHT_INSET_PX,
     zIndex: BASE_Z_INDEX + placement.column,
   };
 }
@@ -147,8 +144,8 @@ function toFullWidthLayout(event: CalendarEvent): TimedEventLayout {
 
   return {
     ...base,
-    leftPercent: HORIZONTAL_INSET_PERCENT,
-    widthPercent: 100 - HORIZONTAL_INSET_PERCENT * 2,
+    leftPercent: 0,
+    rightInsetPx: EVENT_RIGHT_INSET_PX,
     zIndex: BASE_Z_INDEX,
   };
 }
