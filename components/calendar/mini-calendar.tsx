@@ -12,10 +12,12 @@ import {
   goToNextMonth,
   goToPreviousMonth,
 } from "@/lib/calendar-date";
+import { getWeekMonthAnchor, toKstDateKey } from "@/lib/calendar-week";
 import { cn } from "@/lib/utils";
 
 type MiniCalendarProps = {
   currentDate: Date;
+  weekStart: Date;
   onDateSelect: (date: Date) => void;
 };
 
@@ -60,12 +62,17 @@ function MiniCalendarDayButton({
   );
 }
 
-export function MiniCalendar({ currentDate, onDateSelect }: MiniCalendarProps) {
-  const [month, setMonth] = useState(currentDate);
+export function MiniCalendar({
+  currentDate,
+  weekStart,
+  onDateSelect,
+}: MiniCalendarProps) {
+  const [month, setMonth] = useState(() => getWeekMonthAnchor(weekStart));
+  const weekStartKey = toKstDateKey(weekStart);
 
   useEffect(() => {
-    setMonth(currentDate);
-  }, [currentDate]);
+    setMonth(getWeekMonthAnchor(weekStart));
+  }, [weekStartKey, weekStart]);
 
   return (
     <div className="flex w-full flex-col items-center px-2 py-4">

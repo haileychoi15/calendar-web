@@ -193,3 +193,22 @@
     @apply font-sans;
   }
 }
+
+/* Week column highlight: 150ms fade-in → 500ms hold → 700ms fade-out */
+@keyframes weekColumnFlash {
+  0% {
+    opacity: 0;
+    animation-timing-function: ease-out;
+  }
+  11.11% {
+    opacity: 1;
+    animation-timing-function: linear;
+  }
+  48.15% {
+    opacity: 1;
+    animation-timing-function: ease-out;
+  }
+  100% {
+    opacity: 0;
+  }
+}

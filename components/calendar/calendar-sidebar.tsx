@@ -9,11 +9,13 @@ import { MY_CALENDARS, OTHER_CALENDARS } from "@/lib/calendar-data";
 
 type CalendarSidebarProps = {
   currentDate: Date;
+  weekStart: Date;
   onDateSelect: (date: Date) => void;
 };
 
 export function CalendarSidebar({
   currentDate,
+  weekStart,
   onDateSelect,
 }: CalendarSidebarProps) {
   return (
@@ -33,6 +35,7 @@ export function CalendarSidebar({
 
       <MiniCalendar
         currentDate={currentDate}
+        weekStart={weekStart}
         onDateSelect={onDateSelect}
       />
 

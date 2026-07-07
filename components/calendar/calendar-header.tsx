@@ -11,8 +11,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { formatWeekViewMonthTitleForWeek } from "@/lib/calendar-week";
 
 type CalendarHeaderProps = {
+  weekStart: Date;
   onToday: () => void;
   onPreviousWeek: () => void;
   onNextWeek: () => void;
@@ -33,15 +35,38 @@ const VIEW_OPTIONS: ViewOption[] = [
 const HEADER_BUTTON_CLASS = "border-border";
 
 export function CalendarHeader({
+  weekStart,
   onToday,
   onPreviousWeek,
   onNextWeek,
 }: CalendarHeaderProps) {
   const selectedView = VIEW_OPTIONS[1];
+  const monthTitle = formatWeekViewMonthTitleForWeek(weekStart);
 
   return (
-    <header className="flex h-14 shrink-0 items-center justify-end border-b border-border px-6">
+    <header className="mb-4 flex h-14 shrink-0 items-center justify-between px-6">
+      <h1 className="text-[22px] font-semibold text-foreground">{monthTitle}</h1>
+
       <div className="flex items-center gap-2">
+        <div className="flex items-center">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onPreviousWeek}
+            aria-label="이전 주"
+          >
+            <ChevronLeft className="text-muted-foreground" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onNextWeek}
+            aria-label="다음 주"
+          >
+            <ChevronRight className="text-muted-foreground" />
+          </Button>
+        </div>
+
         <Button
           variant="ghost"
           size="default"
@@ -84,25 +109,6 @@ export function CalendarHeader({
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
-
-        <div className="flex items-center">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onPreviousWeek}
-            aria-label="이전 주"
-          >
-            <ChevronLeft className="text-muted-foreground" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onNextWeek}
-            aria-label="다음 주"
-          >
-            <ChevronRight className="text-muted-foreground" />
-          </Button>
-        </div>
 
         <Avatar>
           <AvatarFallback className="text-sm font-medium">CY</AvatarFallback>

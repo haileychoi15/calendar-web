@@ -7,7 +7,6 @@ import {
   formatHourLabel,
   formatNowBadge,
   formatWeekdayHeader,
-  formatWeekViewMonthTitle,
   getKstParts,
   getNowOffsetTop,
   getWeekDays,
@@ -16,41 +15,48 @@ import {
   INITIAL_SCROLL_HOUR,
   isTodayKst,
   isWeekendKst,
+  toKstDateKey,
   TIME_GUTTER_WIDTH,
 } from "@/lib/calendar-week";
 import { cn } from "@/lib/utils";
 
 type CalendarWeekViewProps = {
-  currentDate: Date;
+  weekStart: Date;
+  highlight: { date: Date; nonce: number } | null;
 };
 
 const HOURS = Array.from({ length: HOURS_IN_DAY }, (_, hour) => hour);
 
 function getColumnClassName(date: Date) {
   const isWeekend = isWeekendKst(date);
-  const isToday = isTodayKst(date);
 
   if (isWeekend) return "bg-muted/50";
-  if (isToday) return "bg-primary/5";
   return undefined;
 }
 
 type WeekdayHeaderCellProps = {
   date: Date;
+  highlight: { date: Date; nonce: number } | null;
 };
 
-function WeekdayHeaderCell({ date }: WeekdayHeaderCellProps) {
+function WeekdayHeaderCell({ date, highlight }: WeekdayHeaderCellProps) {
   const isToday = isTodayKst(date);
   const { day } = getKstParts(date);
   const weekdayLabel = formatWeekdayHeader(date).split(" ")[0];
+  const shouldHighlight = highlight && toKstDateKey(highlight.date) === toKstDateKey(date);
 
   return (
     <div
       className={cn(
-        "flex h-10 items-center justify-center gap-1 border-r border-border text-sm last:border-r-0",
-        getColumnClassName(date)
+        "relative flex h-10 items-center justify-center gap-1 text-sm"
       )}
     >
+      {shouldHighlight && (
+        <div
+          key={`${toKstDateKey(date)}-${highlight.nonce}`}
+          className="pointer-events-none absolute inset-0 rounded-t-md bg-primary/16 animate-[weekColumnFlash_1.35s_forwards]"
+        />
+      )}
       <span className={cn(isToday && "text-primary")}>{weekdayLabel}</span>
       {isToday ? (
         <span className="flex size-6 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
@@ -95,21 +101,18 @@ function NowIndicator({ now }: NowIndicatorProps) {
   );
 }
 
-export function CalendarWeekView({ currentDate }: CalendarWeekViewProps) {
+export function CalendarWeekView({ weekStart, highlight }: CalendarWeekViewProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const now = useKstNow();
-  const weekDays = useMemo(() => getWeekDays(currentDate), [currentDate]);
-  const monthTitle = useMemo(
-    () => formatWeekViewMonthTitle(currentDate),
-    [currentDate]
-  );
+  const weekStartKey = toKstDateKey(weekStart);
+  const weekDays = useMemo(() => getWeekDays(weekStart), [weekStartKey, weekStart]);
 
   useEffect(() => {
     const container = scrollRef.current;
     if (!container) return;
 
     container.scrollTop = INITIAL_SCROLL_HOUR * HOUR_SLOT_HEIGHT;
-  }, [currentDate]);
+  }, []);
 
   return (
     <main
@@ -117,16 +120,17 @@ export function CalendarWeekView({ currentDate }: CalendarWeekViewProps) {
       style={{ ["--time-gutter" as string]: TIME_GUTTER_WIDTH }}
     >
       <div className="sticky top-0 z-10 shrink-0 border-b border-border bg-background">
-        <div className="px-4 pt-4">
-          <h1 className="text-lg font-semibold text-foreground">{monthTitle}</h1>
-          <p className="text-xs text-muted-foreground">GMT+9</p>
-        </div>
-
         <div className="grid grid-cols-[var(--time-gutter)_1fr]">
-          <div className="border-r border-border" />
+          <div className="flex h-10 items-center justify-center text-xs text-muted-foreground">
+            GMT+9
+          </div>
           <div className="grid grid-cols-7">
             {weekDays.map((date) => (
-              <WeekdayHeaderCell key={date.toISOString()} date={date} />
+              <WeekdayHeaderCell
+                key={date.toISOString()}
+                date={date}
+                highlight={highlight}
+              />
             ))}
           </div>
         </div>
@@ -138,10 +142,17 @@ export function CalendarWeekView({ currentDate }: CalendarWeekViewProps) {
               <div
                 key={`allday-${date.toISOString()}`}
                 className={cn(
-                  "border-r border-border last:border-r-0",
+                  "relative border-r border-border last:border-r-0",
                   getColumnClassName(date)
                 )}
-              />
+              >
+                {highlight && toKstDateKey(highlight.date) === toKstDateKey(date) && (
+                  <div
+                    key={`${toKstDateKey(date)}-${highlight.nonce}-allday`}
+                    className="pointer-events-none absolute inset-0 bg-primary/16 animate-[weekColumnFlash_1.35s_forwards]"
+                  />
+                )}
+              </div>
             ))}
           </div>
         </div>
@@ -169,10 +180,16 @@ export function CalendarWeekView({ currentDate }: CalendarWeekViewProps) {
               <div
                 key={`grid-${date.toISOString()}`}
                 className={cn(
-                  "border-r border-border last:border-r-0",
+                  "relative border-r border-border last:border-r-0",
                   getColumnClassName(date)
                 )}
               >
+                {highlight && toKstDateKey(highlight.date) === toKstDateKey(date) && (
+                  <div
+                    key={`${toKstDateKey(date)}-${highlight.nonce}-body`}
+                    className="pointer-events-none absolute inset-0 z-10 bg-primary/16 animate-[weekColumnFlash_1.35s_forwards]"
+                  />
+                )}
                 {HOURS.map((hour) => (
                   <div
                     key={hour}

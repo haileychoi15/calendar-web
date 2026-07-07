@@ -72,6 +72,10 @@ export function getWeekDays(date: Date): Date[] {
   return Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
 }
 
+export function getWeekStart(date: Date) {
+  return getWeekDays(date)[0]!;
+}
+
 export function toKstDateKey(date: Date) {
   const { year, month, day } = getKstParts(date);
   return `${year}-${month}-${day}`;
@@ -123,5 +127,24 @@ export function getNowOffsetTop(date: Date) {
 
 export function formatWeekViewMonthTitle(date: Date) {
   const { year, month } = getKstParts(date);
-  return `${year} ${month}월`;
+  return `${year}년 ${month}월`;
+}
+
+export function getWeekMonthAnchor(weekStart: Date) {
+  const weekDays = getWeekDays(weekStart);
+  const first = weekDays[0]!;
+  const last = weekDays[6]!;
+  const firstParts = getKstParts(first);
+  const lastParts = getKstParts(last);
+
+  if (firstParts.year === lastParts.year && firstParts.month === lastParts.month) {
+    return first;
+  }
+
+  // Week spans two months: use Thursday's month.
+  return addDays(first, 4);
+}
+
+export function formatWeekViewMonthTitleForWeek(weekStart: Date) {
+  return formatWeekViewMonthTitle(getWeekMonthAnchor(weekStart));
 }
