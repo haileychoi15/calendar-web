@@ -20,14 +20,15 @@ export function CalendarColorCheckbox({
   checked,
   onCheckedChange,
 }: CalendarColorCheckboxProps) {
+  const sharedClassName = "size-[18px] rounded-[4px] border-input";
+
   if (checkboxColor) {
     return (
       <Checkbox
         checked={checked}
         onCheckedChange={onCheckedChange}
         className={cn(
-          "size-[18px] rounded-[4px]",
-          "border-[color-mix(in_srgb,var(--calendar-color)_38%,transparent)]",
+          sharedClassName,
           "data-checked:border-[var(--calendar-color)] data-checked:bg-[var(--calendar-color)]",
           "data-checked:text-white",
           "dark:data-checked:bg-[var(--calendar-color)] dark:data-checked:text-white"
@@ -47,11 +48,7 @@ export function CalendarColorCheckbox({
     <Checkbox
       checked={checked}
       onCheckedChange={onCheckedChange}
-      className={cn(
-        "size-[18px] rounded-[4px]",
-        colorClasses.border,
-        colorClasses.checked
-      )}
+      className={cn(sharedClassName, colorClasses.checked)}
     />
   );
 }

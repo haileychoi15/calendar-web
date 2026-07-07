@@ -1,6 +1,7 @@
 "use client";
 
 import { Plus } from "lucide-react";
+import { toast } from "sonner";
 
 import { CalendarColorCheckbox } from "@/components/calendar/calendar-color-checkbox";
 import type { CalendarItem } from "@/lib/calendar-data";
@@ -12,6 +13,10 @@ type CalendarListSectionProps = {
   visibleCalendarIds: ReadonlySet<string>;
   onToggleCalendar: (calendarId: string, visible: boolean) => void;
 };
+
+function showUnsupportedPrototypeToast() {
+  toast("프로토타입에서 지원하지 않는 기능입니다.");
+}
 
 export function CalendarListSection({
   title,
@@ -58,6 +63,7 @@ export function CalendarListSection({
         <li>
           <button
             type="button"
+            onClick={showUnsupportedPrototypeToast}
             className={cn(
               "flex w-full items-center gap-1.5 rounded-md px-2 py-1.5",
               "text-sm leading-5 tracking-tight text-muted-foreground",

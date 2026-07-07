@@ -18,37 +18,31 @@ export type CalendarItem = {
 
 export const CALENDAR_COLOR_CLASSES: Record<
   CalendarColor,
-  { checked: string; border: string }
+  { checked: string }
 > = {
   blue: {
     checked: "data-checked:bg-primary data-checked:border-primary",
-    border: "border-primary/40",
   },
   teal: {
     checked:
       "data-checked:bg-toss-teal-500 data-checked:border-toss-teal-500",
-    border: "border-toss-teal-500/40",
   },
   orange: {
     checked:
       "data-checked:bg-toss-orange-500 data-checked:border-toss-orange-500",
-    border: "border-toss-orange-500/40",
   },
   rose: {
     checked: "data-checked:bg-toss-red-500 data-checked:border-toss-red-500",
-    border: "border-toss-red-500/40",
   },
   violet: {
     checked:
       "data-checked:bg-toss-purple-500 data-checked:border-toss-purple-500",
-    border: "border-toss-purple-500/40",
   },
 };
 
 /** Sidebar checkbox colors — Toss 300/400 tokens for clear, non-muddy hues. */
 const PERSON_CHECKBOX_COLORS: Record<string, string> = {
   po1: "var(--purple400)",
-  designer1: "var(--blue300)",
   fe1: "var(--teal400)",
   be1: "var(--orange400)",
   sales1: "var(--red400)",
@@ -65,11 +59,17 @@ const PERSON_TEAMS: Record<string, string> = {
 };
 
 function personToCalendarItem(person: ReturnType<typeof getPeople>[number]): CalendarItem {
+  const isMine = person.id === DEFAULT_PERSON_ID;
+
   return {
     id: person.id,
     name: person.name,
     team: PERSON_TEAMS[person.id],
-    checkboxColor: PERSON_CHECKBOX_COLORS[person.id] ?? "var(--blue400)",
+    ...(isMine
+      ? { color: "blue" as const }
+      : {
+          checkboxColor: PERSON_CHECKBOX_COLORS[person.id] ?? "var(--blue400)",
+        }),
   };
 }
 
