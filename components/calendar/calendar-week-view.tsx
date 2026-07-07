@@ -23,8 +23,11 @@ import {
   HOUR_SLOT_HEIGHT,
   HOURS_IN_DAY,
   INITIAL_SCROLL_HOUR,
+  LUNCH_BREAK,
   isTodayKst,
   isWeekendKst,
+  shouldShowLunchBreakHatch,
+  shouldShowLunchBreakLabel,
   toKstDateKey,
   TIME_GUTTER_WIDTH,
 } from "@/lib/calendar-week";
@@ -37,6 +40,7 @@ type CalendarWeekViewProps = {
   personId?: string;
 };
 
+const CALENDAR_GRID_BORDER_CLASS = "border-calendar-grid";
 const HOURS = Array.from({ length: HOURS_IN_DAY }, (_, hour) => hour);
 
 function getColumnClassName(date: Date) {
@@ -60,7 +64,8 @@ function WeekdayHeaderCell({ date, highlight }: WeekdayHeaderCellProps) {
   return (
     <div
       className={cn(
-        "relative flex h-10 items-center justify-center gap-1 text-sm"
+        "relative flex h-10 items-center justify-center gap-1 border-r text-sm last:border-r-0",
+        CALENDAR_GRID_BORDER_CLASS
       )}
     >
       {shouldHighlight && (
@@ -84,6 +89,22 @@ function WeekdayHeaderCell({ date, highlight }: WeekdayHeaderCellProps) {
 type NowIndicatorProps = {
   now: Date;
 };
+
+function LunchBreakLabel() {
+  return (
+    <div
+      className="pointer-events-none absolute z-[1] flex items-center justify-center text-xs text-muted-foreground"
+      style={{
+        top: LUNCH_BREAK.hour * HOUR_SLOT_HEIGHT,
+        height: HOUR_SLOT_HEIGHT,
+        left: "calc(100% / 7)",
+        width: "calc(100% * 5 / 7)",
+      }}
+    >
+      {LUNCH_BREAK.label}
+    </div>
+  );
+}
 
 function NowIndicator({ now }: NowIndicatorProps) {
   const top = getNowOffsetTop(now);
@@ -156,9 +177,19 @@ export function CalendarWeekView({
         ref={scrollRef}
         className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto"
       >
-        <div className="sticky top-0 z-30 shrink-0 border-b border-border bg-background">
+        <div
+          className={cn(
+            "sticky top-0 z-30 shrink-0 border-b bg-background",
+            CALENDAR_GRID_BORDER_CLASS
+          )}
+        >
           <div className="grid grid-cols-[var(--time-gutter)_1fr]">
-            <div className="flex h-10 items-center justify-center text-xs text-muted-foreground">
+            <div
+              className={cn(
+                "flex h-10 items-center justify-center border-r text-xs text-muted-foreground",
+                CALENDAR_GRID_BORDER_CLASS
+              )}
+            >
               GMT+9
             </div>
             <div className="grid grid-cols-7">
@@ -172,8 +203,13 @@ export function CalendarWeekView({
             </div>
           </div>
 
-          <div className="grid grid-cols-[var(--time-gutter)_1fr] border-t border-border">
-            <div className="min-h-8 border-r border-border" />
+          <div
+            className={cn(
+              "grid grid-cols-[var(--time-gutter)_1fr] border-t",
+              CALENDAR_GRID_BORDER_CLASS
+            )}
+          >
+            <div className={cn("min-h-8 border-r", CALENDAR_GRID_BORDER_CLASS)} />
             <div className="grid min-h-8 grid-cols-7">
               {weekDays.map((date) => {
                 const allDayEvents = getAllDayEventsForDate(
@@ -186,7 +222,8 @@ export function CalendarWeekView({
                   <div
                     key={`allday-${date.toISOString()}`}
                     className={cn(
-                      "relative flex min-h-8 flex-col gap-0.5 border-r border-border p-0.5 last:border-r-0",
+                      "relative flex min-h-8 flex-col gap-0.5 border-r p-0.5 last:border-r-0",
+                      CALENDAR_GRID_BORDER_CLASS,
                       getColumnClassName(date)
                     )}
                   >
@@ -212,7 +249,7 @@ export function CalendarWeekView({
         </div>
 
         <div className="relative grid grid-cols-[var(--time-gutter)_1fr]">
-          <div className="border-r border-border">
+          <div className={cn("border-r", CALENDAR_GRID_BORDER_CLASS)}>
             {HOURS.map((hour) => (
               <div
                 key={hour}
@@ -238,7 +275,8 @@ export function CalendarWeekView({
                 <div
                   key={`grid-${date.toISOString()}`}
                   className={cn(
-                    "relative border-r border-border last:border-r-0",
+                    "relative border-r last:border-r-0",
+                    CALENDAR_GRID_BORDER_CLASS,
                     getColumnClassName(date)
                   )}
                 >
@@ -251,7 +289,12 @@ export function CalendarWeekView({
                   {HOURS.map((hour) => (
                     <div
                       key={hour}
-                      className="border-b border-border"
+                      className={cn(
+                        "border-b",
+                        CALENDAR_GRID_BORDER_CLASS,
+                        shouldShowLunchBreakHatch(hour, date) &&
+                          LUNCH_BREAK.hatchClassName
+                      )}
                       style={{ height: HOUR_SLOT_HEIGHT }}
                     />
                   ))}
@@ -266,6 +309,7 @@ export function CalendarWeekView({
                 </div>
               );
             })}
+            {shouldShowLunchBreakLabel() && <LunchBreakLabel />}
           </div>
 
           <NowIndicator now={now} />

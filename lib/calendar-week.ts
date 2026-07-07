@@ -7,6 +7,27 @@ export const HOURS_IN_DAY = 24;
 export const INITIAL_SCROLL_HOUR = 7;
 export const TIME_GUTTER_WIDTH = "4.5rem";
 
+/** Weekday lunch-break hatch + label in the time grid. Set `enabled` to false to hide. */
+export const LUNCH_BREAK = {
+  enabled: true,
+  /** Hour row index: 12 renders over the 12:00–13:00 slot. */
+  hour: 12,
+  label: "점심시간 12:00-1:00",
+  hatchClassName: "calendar-lunch-hatch",
+} as const;
+
+export function shouldShowLunchBreakHatch(hour: number, date: Date) {
+  return (
+    LUNCH_BREAK.enabled &&
+    hour === LUNCH_BREAK.hour &&
+    !isWeekendKst(date)
+  );
+}
+
+export function shouldShowLunchBreakLabel() {
+  return LUNCH_BREAK.enabled;
+}
+
 const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"] as const;
 
 export type KstParts = {
