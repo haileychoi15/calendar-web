@@ -50,6 +50,9 @@ function formatAllDayEventLabel(event: CalendarEvent) {
   return `[${person.name}] ${event.title}`;
 }
 
+const eventBlockSurfaceClassName =
+  "overflow-hidden rounded-md px-1.5 py-0.5 text-xs leading-tight font-medium shadow-[0_0_0_1px_#ffffff]";
+
 export function CalendarEventBlock({
   event,
   layout,
@@ -69,8 +72,8 @@ export function CalendarEventBlock({
   return (
     <div
       className={cn(
-        "pointer-events-auto absolute overflow-hidden rounded-md border-[1.5px] border-white px-1.5 py-0.5",
-        "text-xs leading-tight font-medium"
+        "pointer-events-auto absolute",
+        eventBlockSurfaceClassName
       )}
       style={{
         top,
@@ -107,7 +110,10 @@ export function CalendarAllDayEventChip({
 
   return (
     <div
-      className="relative z-10 min-h-6 min-w-0 shrink-0 overflow-hidden rounded-md border-[1.5px] border-white px-1.5 py-0.5 text-xs leading-tight font-medium"
+      className={cn(
+        "relative z-10 min-h-6 min-w-0 shrink-0",
+        eventBlockSurfaceClassName
+      )}
       style={{
         backgroundColor: appearance.backgroundColor,
         color: appearance.color,
