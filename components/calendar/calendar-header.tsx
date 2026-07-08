@@ -7,9 +7,9 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
-  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { DropdownMenuOption } from "@/components/ui/dropdown-menu-option";
 import { cn } from "@/lib/utils";
 import { formatWeekViewMonthTitleForWeek } from "@/lib/calendar-week";
 
@@ -97,21 +97,22 @@ export function CalendarHeader({
           />
           <DropdownMenuContent align="end" className="min-w-24">
             {VIEW_OPTIONS.map((option) => (
-              <DropdownMenuItem
+              <DropdownMenuOption
                 key={option.value}
                 disabled={option.disabled}
+                selected={option.value === selectedView.value}
                 className={cn(
                   option.value === selectedView.value && "font-medium"
                 )}
               >
                 {option.label}
-              </DropdownMenuItem>
+              </DropdownMenuOption>
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
 
         <Avatar>
-          <AvatarFallback className="text-sm font-medium">CY</AvatarFallback>
+          <AvatarFallback className="text-sm font-medium">김</AvatarFallback>
         </Avatar>
       </div>
     </header>

@@ -1,9 +1,8 @@
 "use client";
 
-import { X } from "lucide-react";
 import { useEffect } from "react";
 
-import { Button } from "@/components/ui/button";
+import { CreateEventDrawerForm } from "@/components/calendar/create-event-drawer-form";
 import { cn } from "@/lib/utils";
 
 export const SIDEBAR_WIDTH_PX = 240;
@@ -15,11 +14,15 @@ export const CREATE_EVENT_DRAWER_MAIN_PUSH_PX =
 type CreateEventDrawerProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  visiblePersonIds: ReadonlySet<string>;
+  onTogglePersonCalendarVisibility: (personId: string, visible: boolean) => void;
 };
 
 export function CreateEventDrawer({
   open,
   onOpenChange,
+  visiblePersonIds,
+  onTogglePersonCalendarVisibility,
 }: CreateEventDrawerProps) {
   useEffect(() => {
     if (!open) return;
@@ -45,31 +48,17 @@ export function CreateEventDrawer({
       <div
         role="dialog"
         aria-modal={open}
-        aria-labelledby="create-event-drawer-title"
+        aria-label="일정 만들기"
         className={cn(
           "flex h-full w-[300px] flex-col border-r border-border bg-background shadow-md transition-transform duration-modal ease-out",
           open ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <header className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
-          <h2
-            id="create-event-drawer-title"
-            className="text-sm font-semibold leading-5 tracking-tight text-foreground"
-          >
-            일정 만들기
-          </h2>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-sm"
-            aria-label="닫기"
-            onClick={() => onOpenChange(false)}
-          >
-            <X className="size-4" />
-          </Button>
-        </header>
-
-        <div className="min-h-0 flex-1 overflow-y-auto" />
+        <CreateEventDrawerForm
+          onClose={() => onOpenChange(false)}
+          visiblePersonIds={visiblePersonIds}
+          onTogglePersonCalendarVisibility={onTogglePersonCalendarVisibility}
+        />
       </div>
     </div>
   );

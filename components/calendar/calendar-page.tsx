@@ -62,8 +62,8 @@ export function CalendarPage() {
   );
 
   return (
-    <div className="flex h-svh bg-background">
-      <div className="relative shrink-0">
+    <div className="flex h-svh overflow-hidden bg-background">
+      <div className="relative min-h-0 shrink-0">
         <CalendarSidebar
           currentDate={selectedDate}
           weekStart={weekStart}
@@ -82,6 +82,8 @@ export function CalendarPage() {
         <CreateEventDrawer
           open={createEventOpen}
           onOpenChange={setCreateEventOpen}
+          visiblePersonIds={visiblePersonIdSet}
+          onTogglePersonCalendarVisibility={handleToggleCalendarVisibility}
         />
       </div>
       <div
@@ -89,7 +91,7 @@ export function CalendarPage() {
         className="shrink-0 overflow-hidden transition-[width] duration-modal ease-out"
         style={{ width: createEventOpen ? CREATE_EVENT_DRAWER_MAIN_PUSH_PX : 0 }}
       />
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
         <CalendarHeader
           weekStart={weekStart}
           onToday={goToToday}

@@ -49,6 +49,14 @@ const PERSON_CHECKBOX_COLORS: Record<string, string> = {
   marketer1: "var(--green400)",
 };
 
+export function getPersonCheckboxColor(personId: string) {
+  if (personId === DEFAULT_PERSON_ID) {
+    return "var(--primary)";
+  }
+
+  return PERSON_CHECKBOX_COLORS[personId] ?? "var(--grey300)";
+}
+
 const PERSON_TEAMS: Record<string, string> = {
   designer1: "Product",
   po1: "Product",

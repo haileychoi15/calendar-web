@@ -56,7 +56,7 @@ export type EventBlockAppearance = {
   showVacationIcon: boolean;
 };
 
-/** Default calendar owner — matches header avatar "CY" (최유영) */
+/** Default calendar owner — matches header avatar (김토스) */
 export const DEFAULT_PERSON_ID = "designer1";
 
 const data = eventsData as EventsData;
@@ -136,6 +136,29 @@ export function getPeople() {
 
 export function getPersonById(personId: string) {
   return peopleById.get(personId);
+}
+
+export function getPersonBlockAppearance(personId: string) {
+  const person = getPersonById(personId);
+
+  if (personId === DEFAULT_PERSON_ID) {
+    return {
+      backgroundColor: "var(--primary)",
+      color: "var(--primary-foreground)",
+    };
+  }
+
+  if (!person) {
+    return {
+      backgroundColor: "var(--muted)",
+      color: "var(--muted-foreground)",
+    };
+  }
+
+  return {
+    backgroundColor: resolvePersonColor(person.color),
+    color: resolvePersonColor(person.textColor),
+  };
 }
 
 export function getEventDurationMinutes(event: CalendarEvent) {
