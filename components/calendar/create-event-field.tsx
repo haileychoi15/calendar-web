@@ -147,13 +147,16 @@ export function CreateEventPlainInput({
   onFocus,
   onBlur,
   onKeyDown,
+  ref,
 }: CreateEventPlainInputProps & {
+  ref?: React.Ref<HTMLInputElement>;
   onFocus?: FocusEventHandler<HTMLInputElement>;
   onBlur?: FocusEventHandler<HTMLInputElement>;
   onKeyDown?: KeyboardEventHandler<HTMLInputElement>;
 }) {
   return (
     <Input
+      ref={ref}
       type="text"
       value={value}
       onChange={(event) => onChange(event.target.value)}

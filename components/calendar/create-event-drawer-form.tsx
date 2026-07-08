@@ -185,6 +185,7 @@ export function CreateEventDrawerForm({
   onSelectAvailableSlot,
 }: CreateEventDrawerFormProps) {
   const defaultTimes = useMemo(() => getDefaultEventTimes(), []);
+  const titleInputRef = useRef<HTMLInputElement>(null);
   const attendeeBlurTimeoutRef = useRef<number | null>(null);
   const locationBlurTimeoutRef = useRef<number | null>(null);
 
@@ -218,6 +219,16 @@ export function CreateEventDrawerForm({
     EVENT_TYPE_OPTIONS.find((option) => option.value === eventType)?.label ??
     "회의";
   const meetingDurationLabel = formatMeetingDurationLabel(meetingDurationMinutes);
+
+  useEffect(() => {
+    if (!open) return;
+
+    const frameId = requestAnimationFrame(() => {
+      titleInputRef.current?.focus({ preventScroll: true });
+    });
+
+    return () => cancelAnimationFrame(frameId);
+  }, [open]);
   const durationLabel = formatCreateEventDuration(startTime, endTime);
 
   const attendeeIds = useMemo(
@@ -594,6 +605,7 @@ export function CreateEventDrawerForm({
 
           <CreateEventInputShell>
             <CreateEventPlainInput
+              ref={titleInputRef}
               value={title}
               onChange={setTitle}
               placeholder="제목"
