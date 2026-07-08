@@ -101,8 +101,8 @@ export function CalendarPage() {
 
       if (isDateInWeek(slot.start, weekStart)) return;
 
-      setSelectedDate(slot.start);
       setWeekStart(getWeekStart(slot.start));
+      setMiniClickHighlight(null);
     },
     [availableTimeSlots, weekStart]
   );

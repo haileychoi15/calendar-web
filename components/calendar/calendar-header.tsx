@@ -10,8 +10,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DropdownMenuOption } from "@/components/ui/dropdown-menu-option";
-import { cn } from "@/lib/utils";
+import {
+  createEventGhostBorderButtonClassName,
+  createEventOutlineTriggerClassName,
+} from "@/components/calendar/create-event-field";
 import { formatWeekViewMonthTitleForWeek } from "@/lib/calendar-week";
+import { cn } from "@/lib/utils";
 
 type CalendarHeaderProps = {
   weekStart: Date;
@@ -70,10 +74,7 @@ export function CalendarHeader({
         <Button
           variant="ghost"
           size="default"
-          className={cn(
-            "h-8 rounded-md border border-border bg-transparent px-2.5",
-            HEADER_BUTTON_CLASS
-          )}
+          className={cn(createEventGhostBorderButtonClassName, HEADER_BUTTON_CLASS)}
           onClick={onToday}
         >
           오늘
@@ -85,10 +86,7 @@ export function CalendarHeader({
               <Button
                 variant="ghost"
                 size="default"
-                className={cn(
-                  "min-w-14 h-8 gap-1 rounded-md border border-border bg-transparent px-2.5",
-                  HEADER_BUTTON_CLASS
-                )}
+                className={cn(createEventOutlineTriggerClassName, HEADER_BUTTON_CLASS)}
               >
                 {selectedView.label}
                 <ChevronDown className="size-3.5 text-muted-foreground" />

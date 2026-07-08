@@ -21,8 +21,7 @@ export const createEventGhostBorderButtonClassName = cn(
 /** Matches calendar header view selector (주/일/월). */
 export const createEventOutlineTriggerClassName = cn(
   CREATE_EVENT_FIELD_HEIGHT_CLASS,
-  CREATE_EVENT_FIELD_RADIUS_CLASS,
-  "min-w-14 gap-1 border border-border bg-transparent px-2.5 text-sm font-medium"
+  "min-w-14 gap-1 rounded-md border border-border bg-transparent px-2.5 text-sm font-medium"
 );
 
 const suppressHoverWhenActiveClassName =

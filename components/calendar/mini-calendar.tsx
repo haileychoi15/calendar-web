@@ -108,7 +108,7 @@ export function MiniCalendar({
 
   return (
     <div className="flex w-full flex-col items-center px-2 py-4">
-      <div className="mb-1.5 flex h-8 w-full items-center gap-1.5 px-2 py-0.5">
+      <div className="mb-1.5 flex h-8 w-full items-center gap-1.5 py-0.5 pl-2 pr-0">
         <p className="min-w-0 flex-1 text-sm font-semibold leading-5 tracking-tight text-foreground">
           {formatMonthTitle(month)}
         </p>
@@ -117,7 +117,7 @@ export function MiniCalendar({
             type="button"
             variant="ghost"
             size="icon-xs"
-            className="size-6 rounded-lg"
+            className="size-6 rounded-[5px]"
             onClick={() => setMonth((date) => goToPreviousMonth(date))}
             aria-label="이전 달"
           >
@@ -127,7 +127,7 @@ export function MiniCalendar({
             type="button"
             variant="ghost"
             size="icon-xs"
-            className="size-6 rounded-lg"
+            className="size-6 rounded-[5px]"
             onClick={() => setMonth((date) => goToNextMonth(date))}
             aria-label="다음 달"
           >
