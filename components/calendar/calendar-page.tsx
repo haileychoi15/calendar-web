@@ -3,6 +3,10 @@
 import { CalendarHeader } from "@/components/calendar/calendar-header";
 import { CalendarWeekView } from "@/components/calendar/calendar-week-view";
 import { CalendarSidebar } from "@/components/calendar/calendar-sidebar";
+import {
+  CREATE_EVENT_DRAWER_MAIN_PUSH_PX,
+  CreateEventDrawer,
+} from "@/components/calendar/create-event-drawer";
 import { getPeople } from "@/lib/calendar-events";
 import { getWeekStart } from "@/lib/calendar-week";
 import { addDays } from "date-fns";
@@ -19,6 +23,7 @@ export function CalendarPage() {
   const [visiblePersonIds, setVisiblePersonIds] = useState<string[]>(() =>
     getPeople().map((person) => person.id)
   );
+  const [createEventOpen, setCreateEventOpen] = useState(false);
   const visiblePersonIdSet = useMemo(
     () => new Set(visiblePersonIds),
     [visiblePersonIds]
@@ -58,19 +63,31 @@ export function CalendarPage() {
 
   return (
     <div className="flex h-svh bg-background">
-      <CalendarSidebar
-        currentDate={selectedDate}
-        weekStart={weekStart}
-        visiblePersonIds={visiblePersonIdSet}
-        onToggleCalendarVisibility={handleToggleCalendarVisibility}
-        onDateSelect={(date) => {
-          setSelectedDate(date);
-          setWeekStart(getWeekStart(date));
-          setMiniClickHighlight((prev) => ({
-            date,
-            nonce: (prev?.nonce ?? 0) + 1,
-          }));
-        }}
+      <div className="relative shrink-0">
+        <CalendarSidebar
+          currentDate={selectedDate}
+          weekStart={weekStart}
+          visiblePersonIds={visiblePersonIdSet}
+          onToggleCalendarVisibility={handleToggleCalendarVisibility}
+          onCreateEventClick={() => setCreateEventOpen(true)}
+          onDateSelect={(date) => {
+            setSelectedDate(date);
+            setWeekStart(getWeekStart(date));
+            setMiniClickHighlight((prev) => ({
+              date,
+              nonce: (prev?.nonce ?? 0) + 1,
+            }));
+          }}
+        />
+        <CreateEventDrawer
+          open={createEventOpen}
+          onOpenChange={setCreateEventOpen}
+        />
+      </div>
+      <div
+        aria-hidden
+        className="shrink-0 overflow-hidden transition-[width] duration-modal ease-out"
+        style={{ width: createEventOpen ? CREATE_EVENT_DRAWER_MAIN_PUSH_PX : 0 }}
       />
       <div className="flex min-w-0 flex-1 flex-col">
         <CalendarHeader

@@ -199,7 +199,14 @@ export function CalendarWeekView({
               CALENDAR_GRID_BORDER_CLASS
             )}
           >
-            <div className={cn("min-h-8 border-r", CALENDAR_GRID_BORDER_CLASS)} />
+            <div
+              className={cn(
+                "flex min-h-8 items-center justify-end border-r pr-2 text-xs text-muted-foreground",
+                CALENDAR_GRID_BORDER_CLASS
+              )}
+            >
+              종일
+            </div>
             <div className="grid min-h-8 grid-cols-7">
               {weekDays.map((date) => {
                 const allDayEvents = getAllDayEventsForDate(

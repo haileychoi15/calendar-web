@@ -13,6 +13,7 @@ type CalendarSidebarProps = {
   visiblePersonIds: ReadonlySet<string>;
   onToggleCalendarVisibility: (calendarId: string, visible: boolean) => void;
   onDateSelect: (date: Date) => void;
+  onCreateEventClick: () => void;
 };
 
 export function CalendarSidebar({
@@ -21,6 +22,7 @@ export function CalendarSidebar({
   visiblePersonIds,
   onToggleCalendarVisibility,
   onDateSelect,
+  onCreateEventClick,
 }: CalendarSidebarProps) {
   return (
     <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-background">
@@ -31,7 +33,11 @@ export function CalendarSidebar({
       </div>
 
       <div className="px-4 pt-2 pb-3">
-        <Button className="h-10 w-full gap-1 rounded-lg px-4 py-1 hover:bg-[color-mix(in_oklch,var(--primary),var(--foreground)_10%)]">
+        <Button
+          type="button"
+          className="h-10 w-full gap-1 rounded-lg px-4 py-1 hover:bg-[color-mix(in_oklch,var(--primary),var(--foreground)_10%)]"
+          onClick={onCreateEventClick}
+        >
           <Plus className="size-4" />
           일정 만들기
         </Button>
