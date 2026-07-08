@@ -15,9 +15,10 @@ import {
   Video,
   X,
 } from "lucide-react";
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ko as dayPickerKo } from "react-day-picker/locale";
 
+import { AvailableTimesSection } from "@/components/calendar/available-times-section";
 import {
   CreateEventFieldRow,
   CreateEventInputShell,
@@ -35,6 +36,17 @@ import { DropdownListPanel, DropdownMenuOption, DropdownOption } from "@/compone
 import { IconButtonTooltip } from "@/components/ui/icon-button-tooltip";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -72,6 +84,15 @@ import {
   TIME_OPTIONS,
   type EventTypeOption,
 } from "@/lib/create-event-form";
+import {
+  findAvailableTimes,
+  getAvailableTimeSlotKey,
+  getDisplayedAvailableTimeSlots,
+  SEARCH_LOADING_DELAY_MS,
+  type AvailableTimeAttendee,
+  type AvailableTimeSlot,
+  type AvailableTimesResult,
+} from "@/lib/available-times";
 import { cn } from "@/lib/utils";
 
 type AttendeeRequirement = "required" | "optional";
@@ -84,9 +105,16 @@ type Attendee = {
 };
 
 type CreateEventDrawerFormProps = {
+  open: boolean;
   onClose: () => void;
   visiblePersonIds: ReadonlySet<string>;
   onTogglePersonCalendarVisibility: (personId: string, visible: boolean) => void;
+  onAttendeeCalendarIdsChange: (personIds: string[]) => void;
+  onAvailableTimeSlotsChange: (slots: AvailableTimeSlot[]) => void;
+  onHoveredAvailableSlotKeyChange: (slotKey: string | null) => void;
+  hoveredAvailableSlotKey: string | null;
+  selectedAvailableSlotKey: string | null;
+  onSelectAvailableSlot: (slot: AvailableTimeSlot | null) => void;
 };
 
 const ATTENDEE_ACTION_BUTTON_CLASS =
@@ -97,6 +125,12 @@ function isCalendarPersonId(personId: string) {
 }
 
 const INITIAL_ATTENDEE_IDS = ["po1", "fe1", "be1"] as const;
+
+function getAttendeeCalendarPersonIds(attendees: Attendee[]) {
+  return attendees
+    .map((attendee) => attendee.id)
+    .filter((personId) => isCalendarPersonId(personId));
+}
 
 function buildInitialAttendees(): Attendee[] {
   const organizer = getPersonById(DEFAULT_PERSON_ID);
@@ -134,9 +168,16 @@ function personToAttendee(person: Person): Attendee {
 }
 
 export function CreateEventDrawerForm({
+  open,
   onClose,
   visiblePersonIds,
   onTogglePersonCalendarVisibility,
+  onAttendeeCalendarIdsChange,
+  onAvailableTimeSlotsChange,
+  onHoveredAvailableSlotKeyChange,
+  hoveredAvailableSlotKey,
+  selectedAvailableSlotKey,
+  onSelectAvailableSlot,
 }: CreateEventDrawerFormProps) {
   const defaultTimes = useMemo(() => getDefaultEventTimes(), []);
   const attendeeBlurTimeoutRef = useRef<number | null>(null);
@@ -156,6 +197,13 @@ export function CreateEventDrawerForm({
   const [videoLink, setVideoLink] = useState("");
   const [description, setDescription] = useState("");
   const [attachments, setAttachments] = useState("");
+  const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
+  const [availableTimesEverOpened, setAvailableTimesEverOpened] = useState(false);
+  const [availableTimesOpen, setAvailableTimesOpen] = useState(false);
+  const [availableTimesLoading, setAvailableTimesLoading] = useState(false);
+  const [availableTimesResult, setAvailableTimesResult] =
+    useState<AvailableTimesResult | null>(null);
+  const availableTimesRequestRef = useRef(0);
 
   const eventTypeLabel =
     EVENT_TYPE_OPTIONS.find((option) => option.value === eventType)?.label ??
@@ -201,6 +249,62 @@ export function CreateEventDrawerForm({
 
   const showMeetingRoomSuggestions =
     isLocationFocused && meetingRoomSuggestions.length > 0;
+
+  const availableTimeAttendees = useMemo<AvailableTimeAttendee[]>(
+    () =>
+      attendees.map((attendee) => ({
+        id: attendee.id,
+        name: attendee.name,
+        requirement: attendee.requirement,
+      })),
+    [attendees]
+  );
+
+  useEffect(() => {
+    if (!open) return;
+
+    onAttendeeCalendarIdsChange(getAttendeeCalendarPersonIds(attendees));
+  }, [open, attendees, onAttendeeCalendarIdsChange]);
+
+  useEffect(() => {
+    if (
+      !open ||
+      !availableTimesEverOpened ||
+      availableTimesLoading ||
+      !availableTimesResult
+    ) {
+      onAvailableTimeSlotsChange([]);
+      return;
+    }
+
+    onAvailableTimeSlotsChange(
+      getDisplayedAvailableTimeSlots(availableTimesResult)
+    );
+  }, [
+    open,
+    availableTimesEverOpened,
+    availableTimesLoading,
+    availableTimesResult,
+    onAvailableTimeSlotsChange,
+  ]);
+
+  useEffect(() => {
+    if (!availableTimesOpen) return;
+
+    const requestId = availableTimesRequestRef.current + 1;
+    availableTimesRequestRef.current = requestId;
+    setAvailableTimesLoading(true);
+    setAvailableTimesResult(null);
+
+    const timeoutId = window.setTimeout(() => {
+      if (availableTimesRequestRef.current !== requestId) return;
+
+      setAvailableTimesResult(findAvailableTimes(availableTimeAttendees));
+      setAvailableTimesLoading(false);
+    }, SEARCH_LOADING_DELAY_MS);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [availableTimeAttendees, availableTimesOpen]);
 
   const addAttendee = (attendee: Attendee) => {
     setAttendees((current) => {
@@ -322,6 +426,64 @@ export function CreateEventDrawerForm({
     setEndTime(nextEnd);
   };
 
+  const handleOpenAvailableTimes = () => {
+    setAvailableTimesEverOpened(true);
+    setAvailableTimesOpen(true);
+    onSelectAvailableSlot(null);
+  };
+
+  const handleSelectAvailableSlot = (slot: AvailableTimeSlot) => {
+    onSelectAvailableSlot(slot);
+  };
+
+  useEffect(() => {
+    if (!selectedAvailableSlotKey || !availableTimesResult) return;
+
+    const slot = getDisplayedAvailableTimeSlots(availableTimesResult).find(
+      (candidate) =>
+        getAvailableTimeSlotKey(candidate) === selectedAvailableSlotKey
+    );
+
+    if (!slot) return;
+
+    setEventDate(slot.start);
+    setStartTime(slot.start);
+    setEndTime(slot.end);
+  }, [selectedAvailableSlotKey, availableTimesResult]);
+
+  const resetForm = () => {
+    const nextDefaults = getDefaultEventTimes();
+
+    setEventType("meeting");
+    setTitle("");
+    setAttendeeQuery("");
+    setIsAttendeeSearchFocused(false);
+    setAttendees(buildInitialAttendees());
+
+    setEventDate(nextDefaults.date);
+    setStartTime(nextDefaults.start);
+    setEndTime(nextDefaults.end);
+    setDatePopoverOpen(false);
+
+    setLocation("");
+    setIsLocationFocused(false);
+    setVideoLink("");
+    setDescription("");
+    setAttachments("");
+
+    setAvailableTimesOpen(false);
+    setAvailableTimesEverOpened(false);
+    setAvailableTimesLoading(false);
+    setAvailableTimesResult(null);
+    onSelectAvailableSlot(null);
+  };
+
+  const handleDiscardAndClose = () => {
+    setConfirmCloseOpen(false);
+    resetForm();
+    onClose();
+  };
+
   return (
     <div className="relative flex h-full flex-col">
       <div className="min-h-0 flex-1 overflow-y-auto pb-[72px]">
@@ -353,15 +515,48 @@ export function CreateEventDrawerForm({
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon-sm"
-              aria-label="닫기"
-              onClick={onClose}
-            >
-              <X className="size-4" />
-            </Button>
+            <AlertDialog open={confirmCloseOpen} onOpenChange={setConfirmCloseOpen}>
+              <AlertDialogTrigger
+                render={
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label="닫기"
+                  >
+                    <X className="size-4" />
+                  </Button>
+                }
+              />
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>회의 만들기를 취소할까요?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    지금까지 입력한 정보는 저장되지 않아요.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel
+                    render={
+                      <Button type="button" variant="outline">
+                        취소
+                      </Button>
+                    }
+                  />
+                  <AlertDialogAction
+                    render={
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        onClick={handleDiscardAndClose}
+                      >
+                        삭제
+                      </Button>
+                    }
+                  />
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
 
           <CreateEventInputShell>
@@ -513,12 +708,30 @@ export function CreateEventDrawerForm({
               type="button"
               variant="ghost"
               className={cn("w-full", createEventGhostBorderButtonClassName)}
+              onClick={handleOpenAvailableTimes}
             >
               <Sparkles className="size-4" />
               가능 시간 보기
             </Button>
           </CreateEventFieldRow>
         </CreateEventSection>
+
+        {availableTimesEverOpened ? (
+          <CreateEventSection>
+            <CreateEventFieldRow icon={<Sparkles className="size-4" />}>
+              <AvailableTimesSection
+                open={availableTimesOpen}
+                onToggle={() => setAvailableTimesOpen((prev) => !prev)}
+                loading={availableTimesLoading}
+                result={availableTimesResult}
+                selectedSlotKey={selectedAvailableSlotKey}
+                hoveredSlotKey={hoveredAvailableSlotKey}
+                onSelectSlot={handleSelectAvailableSlot}
+                onHoverSlot={onHoveredAvailableSlotKeyChange}
+              />
+            </CreateEventFieldRow>
+          </CreateEventSection>
+        ) : null}
 
         <CreateEventSection>
           <CreateEventFieldRow icon={<Clock className="size-4" />}>

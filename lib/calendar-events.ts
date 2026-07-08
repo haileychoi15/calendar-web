@@ -110,6 +110,26 @@ function formatKstClockTime(date: Date) {
   return `오후 ${hour - 12}:${paddedMinute}`;
 }
 
+function formatKstClockTimeShort(date: Date) {
+  const { hour, minute } = getKstParts(date);
+  const paddedMinute = String(minute).padStart(2, "0");
+  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+  return `${hour12}:${paddedMinute}`;
+}
+
+function formatKstClockRange(start: Date, end: Date) {
+  const startParts = getKstParts(start);
+  const endParts = getKstParts(end);
+  const startPeriod = startParts.hour < 12 ? "오전" : "오후";
+  const endPeriod = endParts.hour < 12 ? "오전" : "오후";
+  const startClock = formatKstClockTimeShort(start);
+  const endClock = formatKstClockTimeShort(end);
+
+  return startPeriod === endPeriod
+    ? `${startPeriod} ${startClock} – ${endClock}`
+    : `${startPeriod} ${startClock} – ${endPeriod} ${endClock}`;
+}
+
 function toCalendarEvent(raw: RawCalendarEvent, index: number): CalendarEvent {
   const start = parseKstDatetime(raw.start);
   const end = parseKstDatetime(raw.end);
@@ -170,7 +190,7 @@ export function isShortEvent(event: CalendarEvent) {
 }
 
 export function formatEventTimeLine(event: CalendarEvent) {
-  const timeRange = `${formatKstClockTime(event.start)} – ${formatKstClockTime(event.end)}`;
+  const timeRange = formatKstClockRange(event.start, event.end);
   if (event.location) return `${timeRange}, ${event.location}`;
   return timeRange;
 }

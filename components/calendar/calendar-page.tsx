@@ -8,7 +8,9 @@ import {
   CreateEventDrawer,
 } from "@/components/calendar/create-event-drawer";
 import { getPeople } from "@/lib/calendar-events";
-import { getWeekStart } from "@/lib/calendar-week";
+import type { AvailableTimeSlot } from "@/lib/available-times";
+import { getAvailableTimeSlotKey } from "@/lib/available-times";
+import { getWeekStart, isDateInWeek } from "@/lib/calendar-week";
 import { addDays } from "date-fns";
 
 import { useCallback, useMemo, useState } from "react";
@@ -24,6 +26,15 @@ export function CalendarPage() {
     getPeople().map((person) => person.id)
   );
   const [createEventOpen, setCreateEventOpen] = useState(false);
+  const [availableTimeSlots, setAvailableTimeSlots] = useState<
+    AvailableTimeSlot[]
+  >([]);
+  const [hoveredAvailableSlotKey, setHoveredAvailableSlotKey] = useState<
+    string | null
+  >(null);
+  const [selectedAvailableSlotKey, setSelectedAvailableSlotKey] = useState<
+    string | null
+  >(null);
   const visiblePersonIdSet = useMemo(
     () => new Set(visiblePersonIds),
     [visiblePersonIds]
@@ -61,6 +72,58 @@ export function CalendarPage() {
     []
   );
 
+  const handleAttendeeCalendarIdsChange = useCallback(
+    (personIds: string[]) => {
+      setVisiblePersonIds(personIds);
+    },
+    []
+  );
+
+  const handleAvailableTimeSlotsChange = useCallback(
+    (slots: AvailableTimeSlot[]) => {
+      setAvailableTimeSlots(slots);
+      setHoveredAvailableSlotKey(null);
+      setSelectedAvailableSlotKey(null);
+    },
+    []
+  );
+
+  const handleHoveredAvailableSlotKeyChange = useCallback(
+    (slotKey: string | null) => {
+      setHoveredAvailableSlotKey(slotKey);
+
+      if (!slotKey) return;
+
+      const slot = availableTimeSlots.find(
+        (candidate) => getAvailableTimeSlotKey(candidate) === slotKey
+      );
+      if (!slot) return;
+
+      if (isDateInWeek(slot.start, weekStart)) return;
+
+      setSelectedDate(slot.start);
+      setWeekStart(getWeekStart(slot.start));
+    },
+    [availableTimeSlots, weekStart]
+  );
+
+  const handleSelectAvailableSlot = useCallback(
+    (slot: AvailableTimeSlot | null) => {
+      setSelectedAvailableSlotKey(
+        slot ? getAvailableTimeSlotKey(slot) : null
+      );
+    },
+    []
+  );
+
+  const handleCreateEventOpenChange = useCallback((open: boolean) => {
+    setCreateEventOpen(open);
+    if (!open) {
+      setHoveredAvailableSlotKey(null);
+      setSelectedAvailableSlotKey(null);
+    }
+  }, []);
+
   return (
     <div className="flex h-svh overflow-hidden bg-background">
       <div className="relative min-h-0 shrink-0">
@@ -81,9 +144,15 @@ export function CalendarPage() {
         />
         <CreateEventDrawer
           open={createEventOpen}
-          onOpenChange={setCreateEventOpen}
+          onOpenChange={handleCreateEventOpenChange}
           visiblePersonIds={visiblePersonIdSet}
           onTogglePersonCalendarVisibility={handleToggleCalendarVisibility}
+          onAttendeeCalendarIdsChange={handleAttendeeCalendarIdsChange}
+          onAvailableTimeSlotsChange={handleAvailableTimeSlotsChange}
+          onHoveredAvailableSlotKeyChange={handleHoveredAvailableSlotKeyChange}
+          hoveredAvailableSlotKey={hoveredAvailableSlotKey}
+          selectedAvailableSlotKey={selectedAvailableSlotKey}
+          onSelectAvailableSlot={handleSelectAvailableSlot}
         />
       </div>
       <div
@@ -101,6 +170,11 @@ export function CalendarPage() {
         <CalendarWeekView
           weekStart={weekStart}
           visiblePersonIds={visiblePersonIdSet}
+          availableTimeSlots={availableTimeSlots}
+          hoveredAvailableSlotKey={hoveredAvailableSlotKey}
+          selectedAvailableSlotKey={selectedAvailableSlotKey}
+          onHoveredAvailableSlotKeyChange={handleHoveredAvailableSlotKeyChange}
+          onSelectAvailableSlot={handleSelectAvailableSlot}
           highlight={
             miniClickHighlight
               ? { date: miniClickHighlight.date, nonce: miniClickHighlight.nonce }

@@ -6,6 +6,7 @@ import {
   CalendarAllDayEventChip,
   CalendarEventBlock,
 } from "@/components/calendar/calendar-event-block";
+import { CalendarAvailableTimeBlock } from "@/components/calendar/calendar-available-time-block";
 import { useKstNow } from "@/hooks/use-kst-now";
 import {
   DEFAULT_PERSON_ID,
@@ -13,6 +14,11 @@ import {
   getTimedEventsForDate,
 } from "@/lib/calendar-events";
 import { computeTimedEventLayouts } from "@/lib/calendar-event-overlap";
+import {
+  getAvailableTimeSlotKey,
+  isAvailableTimeSlotOnDate,
+  type AvailableTimeSlot,
+} from "@/lib/available-times";
 import {
   formatHourLabel,
   formatNowBadge,
@@ -37,6 +43,11 @@ type CalendarWeekViewProps = {
   weekStart: Date;
   highlight: { date: Date; nonce: number } | null;
   visiblePersonIds: ReadonlySet<string>;
+  availableTimeSlots?: AvailableTimeSlot[];
+  hoveredAvailableSlotKey?: string | null;
+  selectedAvailableSlotKey?: string | null;
+  onHoveredAvailableSlotKeyChange?: (slotKey: string | null) => void;
+  onSelectAvailableSlot?: (slot: AvailableTimeSlot) => void;
   personId?: string;
 };
 
@@ -133,6 +144,11 @@ export function CalendarWeekView({
   weekStart,
   highlight,
   visiblePersonIds,
+  availableTimeSlots = [],
+  hoveredAvailableSlotKey = null,
+  selectedAvailableSlotKey = null,
+  onHoveredAvailableSlotKeyChange,
+  onSelectAvailableSlot,
   personId = DEFAULT_PERSON_ID,
 }: CalendarWeekViewProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -298,6 +314,41 @@ export function CalendarWeekView({
                       viewerPersonId={personId}
                     />
                   ))}
+                  {availableTimeSlots
+                    .filter((slot) => isAvailableTimeSlotOnDate(slot, date))
+                    .sort((a, b) => {
+                      const aKey = getAvailableTimeSlotKey(a);
+                      const bKey = getAvailableTimeSlotKey(b);
+                      const aHovered = hoveredAvailableSlotKey === aKey;
+                      const bHovered = hoveredAvailableSlotKey === bKey;
+                      const aSelected = selectedAvailableSlotKey === aKey;
+                      const bSelected = selectedAvailableSlotKey === bKey;
+
+                      const aPriority = aHovered ? 2 : aSelected ? 1 : 0;
+                      const bPriority = bHovered ? 2 : bSelected ? 1 : 0;
+
+                      if (aPriority === bPriority) return 0;
+                      return aPriority - bPriority;
+                    })
+                    .map((slot) => {
+                      const slotKey = getAvailableTimeSlotKey(slot);
+
+                      return (
+                        <CalendarAvailableTimeBlock
+                          key={slotKey}
+                          slot={slot}
+                          hovered={hoveredAvailableSlotKey === slotKey}
+                          selected={selectedAvailableSlotKey === slotKey}
+                          onHover={() =>
+                            onHoveredAvailableSlotKeyChange?.(slotKey)
+                          }
+                          onHoverEnd={() =>
+                            onHoveredAvailableSlotKeyChange?.(null)
+                          }
+                          onSelect={() => onSelectAvailableSlot?.(slot)}
+                        />
+                      );
+                    })}
                 </div>
               );
             })}
