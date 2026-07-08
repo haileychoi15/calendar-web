@@ -186,3 +186,34 @@ export const createEventTimeSelectStartTriggerClassName = cn(
   createEventTimeSelectTriggerClassName,
   "w-[91px]"
 );
+
+export const createEventTimeSelectEndTriggerClassName = cn(
+  createEventTimeSelectTriggerClassName,
+  "w-full min-w-0"
+);
+
+type CreateEventFieldFlashProps = {
+  flashKey: number;
+  className?: string;
+  children: ReactNode;
+};
+
+/** Brief primary tint when event time fields are filled from an available slot. */
+export function CreateEventFieldFlash({
+  flashKey,
+  className,
+  children,
+}: CreateEventFieldFlashProps) {
+  return (
+    <div className={cn("relative", className)}>
+      {flashKey > 0 ? (
+        <span
+          key={flashKey}
+          aria-hidden
+          className="pointer-events-none absolute inset-0 z-0 rounded-sm bg-primary/16 animate-[eventTimeFieldFlash_1.7s_forwards]"
+        />
+      ) : null}
+      <div className="relative z-[1] min-w-0 w-full">{children}</div>
+    </div>
+  );
+}

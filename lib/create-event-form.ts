@@ -1,4 +1,4 @@
-import { addHours, format } from "date-fns";
+import { addHours, addMinutes, format } from "date-fns";
 import { ko } from "date-fns/locale";
 
 import { getKstParts } from "@/lib/calendar-week";
@@ -11,6 +11,16 @@ export const EVENT_TYPE_OPTIONS = [
 ] as const;
 
 export type EventTypeOption = (typeof EVENT_TYPE_OPTIONS)[number]["value"];
+
+export const MEETING_DURATION_OPTIONS = [
+  { minutes: 30, label: "30분" },
+  { minutes: 60, label: "1시간" },
+  { minutes: 90, label: "1시간 30분" },
+  { minutes: 120, label: "2시간" },
+  { minutes: 180, label: "3시간" },
+] as const;
+
+export const DEFAULT_MEETING_DURATION_MINUTES = 60;
 
 export function createKstDateTime(
   year: number,
@@ -79,8 +89,17 @@ export function formatCreateEventClockTime(date: Date) {
 
 export function formatCreateEventDuration(start: Date, end: Date) {
   const totalMinutes = Math.round((end.getTime() - start.getTime()) / (1000 * 60));
+  return formatMeetingDurationLabel(totalMinutes);
+}
 
+export function formatMeetingDurationLabel(totalMinutes: number) {
   if (totalMinutes <= 0) return "";
+
+  const preset = MEETING_DURATION_OPTIONS.find(
+    (option) => option.minutes === totalMinutes
+  );
+  if (preset) return preset.label;
+
   if (totalMinutes % 60 === 0) {
     const hours = totalMinutes / 60;
     return hours === 1 ? "1시간" : `${hours}시간`;
@@ -92,6 +111,35 @@ export function formatCreateEventDuration(start: Date, end: Date) {
   if (hours === 0) return `${minutes}분`;
   if (minutes === 0) return hours === 1 ? "1시간" : `${hours}시간`;
   return `${hours}시간 ${minutes}분`;
+}
+
+export function addKstMinutes(date: Date, minutes: number) {
+  const next = addMinutes(date, minutes);
+  const parts = getKstParts(next);
+
+  return createKstDateTime(
+    parts.year,
+    parts.month,
+    parts.day,
+    parts.hour,
+    parts.minute
+  );
+}
+
+export function snapToMeetingDurationMinutes(totalMinutes: number) {
+  if (totalMinutes <= 0) return DEFAULT_MEETING_DURATION_MINUTES;
+
+  const exact = MEETING_DURATION_OPTIONS.find(
+    (option) => option.minutes === totalMinutes
+  );
+  if (exact) return exact.minutes;
+
+  return MEETING_DURATION_OPTIONS.reduce((closest, option) => {
+    return Math.abs(option.minutes - totalMinutes) <
+      Math.abs(closest.minutes - totalMinutes)
+      ? option
+      : closest;
+  }).minutes;
 }
 
 export function getDefaultEventTimes() {

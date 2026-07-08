@@ -1,6 +1,5 @@
 "use client";
 
-import { addHours } from "date-fns";
 import {
   AlignLeft,
   ChevronDown,
@@ -20,6 +19,7 @@ import { ko as dayPickerKo } from "react-day-picker/locale";
 
 import { AvailableTimesSection } from "@/components/calendar/available-times-section";
 import {
+  CreateEventFieldFlash,
   CreateEventFieldRow,
   CreateEventInputShell,
   CreateEventPlainInput,
@@ -29,7 +29,7 @@ import {
   createEventOutlineTriggerClassName,
   createEventSelectableTriggerClassName,
   createEventTimeSelectStartTriggerClassName,
-  createEventTimeSelectTriggerClassName,
+  createEventTimeSelectEndTriggerClassName,
 } from "@/components/calendar/create-event-field";
 import { PersonAvatar } from "@/components/calendar/person-avatar";
 import { DropdownListPanel, DropdownMenuOption, DropdownOption } from "@/components/ui/dropdown-list";
@@ -73,14 +73,19 @@ import {
 import {
   applyKstDate,
   applyKstTime,
+  addKstMinutes,
+  DEFAULT_MEETING_DURATION_MINUTES,
   EVENT_TYPE_OPTIONS,
   formatCreateEventClockTime,
   formatCreateEventDate,
   formatCreateEventDuration,
+  formatMeetingDurationLabel,
   getDefaultEventTimes,
   getKstTimeValue,
+  MEETING_DURATION_OPTIONS,
   MEETING_ROOM_OPTIONS,
   parseKstTimeValue,
+  snapToMeetingDurationMinutes,
   TIME_OPTIONS,
   type EventTypeOption,
 } from "@/lib/create-event-form";
@@ -204,10 +209,15 @@ export function CreateEventDrawerForm({
   const [availableTimesResult, setAvailableTimesResult] =
     useState<AvailableTimesResult | null>(null);
   const availableTimesRequestRef = useRef(0);
+  const [eventTimeFlashKey, setEventTimeFlashKey] = useState(0);
+  const [meetingDurationMinutes, setMeetingDurationMinutes] = useState(
+    DEFAULT_MEETING_DURATION_MINUTES
+  );
 
   const eventTypeLabel =
     EVENT_TYPE_OPTIONS.find((option) => option.value === eventType)?.label ??
     "회의";
+  const meetingDurationLabel = formatMeetingDurationLabel(meetingDurationMinutes);
   const durationLabel = formatCreateEventDuration(startTime, endTime);
 
   const attendeeIds = useMemo(
@@ -299,12 +309,16 @@ export function CreateEventDrawerForm({
     const timeoutId = window.setTimeout(() => {
       if (availableTimesRequestRef.current !== requestId) return;
 
-      setAvailableTimesResult(findAvailableTimes(availableTimeAttendees));
+      setAvailableTimesResult(
+        findAvailableTimes(availableTimeAttendees, {
+          durationMinutes: meetingDurationMinutes,
+        })
+      );
       setAvailableTimesLoading(false);
     }, SEARCH_LOADING_DELAY_MS);
 
     return () => window.clearTimeout(timeoutId);
-  }, [availableTimeAttendees, availableTimesOpen]);
+  }, [availableTimeAttendees, availableTimesOpen, meetingDurationMinutes]);
 
   const addAttendee = (attendee: Attendee) => {
     setAttendees((current) => {
@@ -410,10 +424,7 @@ export function CreateEventDrawerForm({
     const { hour, minute } = parseKstTimeValue(value);
     const nextStart = applyKstTime(startTime, hour, minute);
     setStartTime(nextStart);
-
-    if (nextStart.getTime() >= endTime.getTime()) {
-      setEndTime(addHours(nextStart, 1));
-    }
+    setEndTime(addKstMinutes(nextStart, meetingDurationMinutes));
   };
 
   const handleEndTimeChange = (value: string | null) => {
@@ -424,6 +435,19 @@ export function CreateEventDrawerForm({
 
     if (nextEnd.getTime() <= startTime.getTime()) return;
     setEndTime(nextEnd);
+
+    const diffMinutes = Math.round(
+      (nextEnd.getTime() - startTime.getTime()) / (1000 * 60)
+    );
+    if (diffMinutes > 0) {
+      setMeetingDurationMinutes(snapToMeetingDurationMinutes(diffMinutes));
+    }
+  };
+
+  const handleMeetingDurationChange = (minutes: number) => {
+    setMeetingDurationMinutes(minutes);
+    setEndTime(addKstMinutes(startTime, minutes));
+    onSelectAvailableSlot(null);
   };
 
   const handleOpenAvailableTimes = () => {
@@ -449,6 +473,12 @@ export function CreateEventDrawerForm({
     setEventDate(slot.start);
     setStartTime(slot.start);
     setEndTime(slot.end);
+    setMeetingDurationMinutes(
+      snapToMeetingDurationMinutes(
+        Math.round((slot.end.getTime() - slot.start.getTime()) / (1000 * 60))
+      )
+    );
+    setEventTimeFlashKey((key) => key + 1);
   }, [selectedAvailableSlotKey, availableTimesResult]);
 
   const resetForm = () => {
@@ -463,6 +493,7 @@ export function CreateEventDrawerForm({
     setEventDate(nextDefaults.date);
     setStartTime(nextDefaults.start);
     setEndTime(nextDefaults.end);
+    setMeetingDurationMinutes(DEFAULT_MEETING_DURATION_MINUTES);
     setDatePopoverOpen(false);
 
     setLocation("");
@@ -476,6 +507,7 @@ export function CreateEventDrawerForm({
     setAvailableTimesLoading(false);
     setAvailableTimesResult(null);
     onSelectAvailableSlot(null);
+    setEventTimeFlashKey(0);
   };
 
   const handleDiscardAndClose = () => {
@@ -485,8 +517,8 @@ export function CreateEventDrawerForm({
   };
 
   return (
-    <div className="relative flex h-full flex-col">
-      <div className="min-h-0 flex-1 overflow-y-auto pb-[72px]">
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="min-h-0 flex-1 overflow-y-auto">
         <CreateEventSection className="space-y-2 pt-3">
           <div className="flex items-center justify-between">
             <DropdownMenu>
@@ -507,6 +539,7 @@ export function CreateEventDrawerForm({
                   <DropdownMenuOption
                     key={option.value}
                     selected={eventType === option.value}
+                    disabled={option.value !== "meeting"}
                     onClick={() => setEventType(option.value)}
                   >
                     {option.label}
@@ -704,15 +737,46 @@ export function CreateEventDrawerForm({
               ))}
             </ul>
 
-            <Button
-              type="button"
-              variant="ghost"
-              className={cn("w-full", createEventGhostBorderButtonClassName)}
-              onClick={handleOpenAvailableTimes}
-            >
-              <Sparkles className="size-4" />
-              가능 시간 보기
-            </Button>
+            <div className="flex items-center gap-2">
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={
+                    <Button
+                      variant="ghost"
+                      size="default"
+                      className={createEventOutlineTriggerClassName}
+                    >
+                      {meetingDurationLabel}
+                      <ChevronDown className="size-3.5 text-muted-foreground" />
+                    </Button>
+                  }
+                />
+                <DropdownMenuContent align="start">
+                  {MEETING_DURATION_OPTIONS.map((option) => (
+                    <DropdownMenuOption
+                      key={option.minutes}
+                      selected={meetingDurationMinutes === option.minutes}
+                      onClick={() => handleMeetingDurationChange(option.minutes)}
+                    >
+                      {option.label}
+                    </DropdownMenuOption>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+
+              <Button
+                type="button"
+                variant="ghost"
+                className={cn(
+                  "min-w-0 flex-1",
+                  createEventGhostBorderButtonClassName
+                )}
+                onClick={handleOpenAvailableTimes}
+              >
+                <Sparkles className="size-4" />
+                가능 시간 보기
+              </Button>
+            </div>
           </CreateEventFieldRow>
         </CreateEventSection>
 
@@ -735,84 +799,93 @@ export function CreateEventDrawerForm({
 
         <CreateEventSection>
           <CreateEventFieldRow icon={<Clock className="size-4" />}>
-            <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
-              <PopoverTrigger
-                render={
-                  <button
-                    type="button"
-                    className={createEventSelectableTriggerClassName}
-                  >
-                    {formatCreateEventDate(eventDate)}
-                  </button>
-                }
-              />
-              <PopoverContent align="start" className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={eventDate}
-                  onSelect={handleDateSelect}
-                  locale={dayPickerKo}
+            <CreateEventFieldFlash flashKey={eventTimeFlashKey}>
+              <Popover open={datePopoverOpen} onOpenChange={setDatePopoverOpen}>
+                <PopoverTrigger
+                  render={
+                    <button
+                      type="button"
+                      className={createEventSelectableTriggerClassName}
+                    >
+                      {formatCreateEventDate(eventDate)}
+                    </button>
+                  }
                 />
-              </PopoverContent>
-            </Popover>
+                <PopoverContent align="start" className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={eventDate}
+                    onSelect={handleDateSelect}
+                    locale={dayPickerKo}
+                  />
+                </PopoverContent>
+              </Popover>
+            </CreateEventFieldFlash>
 
             <div className="flex items-center gap-1">
-              <Select
-                value={getKstTimeValue(startTime)}
-                onValueChange={handleStartTimeChange}
+              <CreateEventFieldFlash
+                flashKey={eventTimeFlashKey}
+                className="w-[91px] shrink-0"
               >
-                <SelectTrigger
-                  showIcon={false}
-                  className={createEventTimeSelectStartTriggerClassName}
+                <Select
+                  value={getKstTimeValue(startTime)}
+                  onValueChange={handleStartTimeChange}
                 >
-                  <SelectValue placeholder={formatCreateEventClockTime(startTime)}>
-                    <span className="text-sm font-medium">
-                      {formatCreateEventClockTime(startTime)}
-                    </span>
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent className="max-h-56">
-                  {TIME_OPTIONS.map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                  <SelectTrigger
+                    showIcon={false}
+                    className={createEventTimeSelectStartTriggerClassName}
+                  >
+                    <SelectValue placeholder={formatCreateEventClockTime(startTime)}>
+                      <span className="text-sm font-medium">
+                        {formatCreateEventClockTime(startTime)}
+                      </span>
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="max-h-56">
+                    {TIME_OPTIONS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </CreateEventFieldFlash>
 
               <span className="shrink-0 text-sm text-muted-foreground">→</span>
 
-              <Select
-                value={getKstTimeValue(endTime)}
-                onValueChange={handleEndTimeChange}
-              >
-                <SelectTrigger
-                  showIcon={false}
-                  className={createEventTimeSelectTriggerClassName}
+              <CreateEventFieldFlash flashKey={eventTimeFlashKey} className="min-w-0 flex-1">
+                <Select
+                  value={getKstTimeValue(endTime)}
+                  onValueChange={handleEndTimeChange}
                 >
-                  <SelectValue placeholder={formatCreateEventClockTime(endTime)}>
-                    <span className="text-sm font-medium">
-                      {formatCreateEventClockTime(endTime)}
-                    </span>
-                    {durationLabel ? (
-                      <span className="ml-1 text-xs font-normal text-muted-foreground">
-                        {durationLabel}
+                  <SelectTrigger
+                    showIcon={false}
+                    className={createEventTimeSelectEndTriggerClassName}
+                  >
+                    <SelectValue placeholder={formatCreateEventClockTime(endTime)}>
+                      <span className="text-sm font-medium">
+                        {formatCreateEventClockTime(endTime)}
                       </span>
-                    ) : null}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent className="max-h-56">
-                  {TIME_OPTIONS.filter((option) => {
-                    const { hour, minute } = option;
-                    const candidate = applyKstTime(startTime, hour, minute);
-                    return candidate.getTime() > startTime.getTime();
-                  }).map((option) => (
-                    <SelectItem key={option.value} value={option.value}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                      {durationLabel ? (
+                        <span className="ml-1 text-xs font-normal text-muted-foreground">
+                          {durationLabel}
+                        </span>
+                      ) : null}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent className="max-h-56">
+                    {TIME_OPTIONS.filter((option) => {
+                      const { hour, minute } = option;
+                      const candidate = applyKstTime(startTime, hour, minute);
+                      return candidate.getTime() > startTime.getTime();
+                    }).map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </CreateEventFieldFlash>
             </div>
           </CreateEventFieldRow>
         </CreateEventSection>
@@ -889,7 +962,7 @@ export function CreateEventDrawerForm({
         </CreateEventSection>
       </div>
 
-      <div className="absolute inset-x-0 bottom-0 bg-background p-4">
+      <div className="shrink-0 border-t border-border bg-background p-4">
         <Button type="button" className="h-10 w-full rounded-lg">
           초대보내기
         </Button>

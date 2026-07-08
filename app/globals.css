@@ -217,6 +217,18 @@
   }
 }
 
+/* Available slot → event time fields: 1s hold → fade out */
+@keyframes eventTimeFieldFlash {
+  0%,
+  58.82% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    animation-timing-function: ease-out;
+  }
+}
+
 /* Lunch break hatch — toggled via LUNCH_BREAK in lib/calendar-week.ts */
 .calendar-lunch-hatch {
   background-image: repeating-linear-gradient(

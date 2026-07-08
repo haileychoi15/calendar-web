@@ -33,8 +33,8 @@ export type AvailableTimesResult = {
   showRequiredOnlySection: boolean;
 };
 
-const SLOT_DURATION_MINUTES = 60;
 const SLOT_STEP_MINUTES = 30;
+const DEFAULT_SLOT_DURATION_MINUTES = 60;
 const BUSINESS_HOUR_START = 9;
 const BUSINESS_HOUR_END = 18;
 const LUNCH_BREAK_START_MINUTES = 12 * 60;
@@ -178,7 +178,7 @@ function alignToNextBusinessSlot(date: Date) {
   }
 }
 
-function generateCandidateSlots(now: Date) {
+function generateCandidateSlots(now: Date, durationMinutes: number) {
   const candidates: Array<{ start: Date; end: Date }> = [];
   let cursor = alignToNextBusinessSlot(now);
   const rangeEnd = getSearchRangeEnd(now);
@@ -187,7 +187,7 @@ function generateCandidateSlots(now: Date) {
     cursor = alignToNextBusinessSlot(cursor);
     if (cursor.getTime() >= rangeEnd.getTime()) break;
 
-    const end = addMinutes(cursor, SLOT_DURATION_MINUTES);
+    const end = addMinutes(cursor, durationMinutes);
 
     if (
       isWithinBusinessHours(cursor, end) &&
@@ -285,10 +285,17 @@ function formatAvailableClockTimeShort(date: Date) {
   return `${hour12}:${paddedMinute}`;
 }
 
+export type FindAvailableTimesOptions = {
+  now?: Date;
+  durationMinutes?: number;
+};
+
 export function findAvailableTimes(
   attendees: AvailableTimeAttendee[],
-  now: Date = new Date()
+  options: FindAvailableTimesOptions = {}
 ): AvailableTimesResult {
+  const now = options.now ?? new Date();
+  const durationMinutes = options.durationMinutes ?? DEFAULT_SLOT_DURATION_MINUTES;
   const requiredAttendees = attendees.filter(
     (attendee) => attendee.requirement === "required"
   );
@@ -299,7 +306,7 @@ export function findAvailableTimes(
   const allAvailableSlots: AvailableTimeSlot[] = [];
   const requiredOnlySlots: AvailableTimeSlot[] = [];
 
-  for (const candidate of generateCandidateSlots(now)) {
+  for (const candidate of generateCandidateSlots(now, durationMinutes)) {
     const unavailableRequired = getUnavailableAttendees(
       requiredAttendees,
       candidate.start,
