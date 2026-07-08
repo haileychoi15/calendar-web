@@ -62,12 +62,7 @@ function WeekdayHeaderCell({ date, highlight }: WeekdayHeaderCellProps) {
   const shouldHighlight = highlight && toKstDateKey(highlight.date) === toKstDateKey(date);
 
   return (
-    <div
-      className={cn(
-        "relative flex h-10 items-center justify-center gap-1 border-r text-sm last:border-r-0",
-        CALENDAR_GRID_BORDER_CLASS
-      )}
-    >
+    <div className="relative flex h-10 items-center justify-center gap-1 text-sm">
       {shouldHighlight && (
         <div
           key={`${toKstDateKey(date)}-${highlight.nonce}`}
@@ -76,7 +71,7 @@ function WeekdayHeaderCell({ date, highlight }: WeekdayHeaderCellProps) {
       )}
       <span className={cn(isToday && "text-primary")}>{weekdayLabel}</span>
       {isToday ? (
-        <span className="flex size-6 items-center justify-center rounded-full bg-primary text-xs text-primary-foreground">
+        <span className="flex size-6 items-center justify-center rounded-(--radius-sm) bg-primary text-xs text-primary-foreground">
           {day}
         </span>
       ) : (
@@ -112,14 +107,14 @@ function NowIndicator({ now }: NowIndicatorProps) {
   return (
     <>
       <div
-        className="pointer-events-none absolute right-0 z-20 h-0.5 bg-primary"
+        className="pointer-events-none absolute right-0 z-30 h-px bg-primary"
         style={{
           top,
           left: TIME_GUTTER_WIDTH,
         }}
       />
       <div
-        className="pointer-events-none absolute z-20 flex justify-end pr-1"
+        className="pointer-events-none absolute z-30 flex justify-end pr-1"
         style={{
           top: top - 10,
           left: 0,
@@ -184,12 +179,7 @@ export function CalendarWeekView({
           )}
         >
           <div className="grid grid-cols-[var(--time-gutter)_1fr]">
-            <div
-              className={cn(
-                "flex h-10 items-center justify-center border-r text-xs text-muted-foreground",
-                CALENDAR_GRID_BORDER_CLASS
-              )}
-            >
+            <div className="flex h-10 items-center justify-center text-xs text-muted-foreground">
               GMT+9
             </div>
             <div className="grid grid-cols-7">
@@ -222,8 +212,7 @@ export function CalendarWeekView({
                   <div
                     key={`allday-${date.toISOString()}`}
                     className={cn(
-                      "relative flex min-h-8 flex-col gap-0.5 border-r p-0.5 last:border-r-0",
-                      CALENDAR_GRID_BORDER_CLASS,
+                      "relative flex min-h-8 flex-col gap-0.5 p-0.5",
                       getColumnClassName(date)
                     )}
                   >
@@ -274,11 +263,7 @@ export function CalendarWeekView({
               return (
                 <div
                   key={`grid-${date.toISOString()}`}
-                  className={cn(
-                    "relative border-r last:border-r-0",
-                    CALENDAR_GRID_BORDER_CLASS,
-                    getColumnClassName(date)
-                  )}
+                  className={cn("relative", getColumnClassName(date))}
                 >
                   {highlight && toKstDateKey(highlight.date) === dateKey && (
                     <div
