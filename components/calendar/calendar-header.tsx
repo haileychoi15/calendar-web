@@ -2,7 +2,7 @@
 
 import { ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { PersonAvatar } from "@/components/calendar/person-avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -12,9 +12,11 @@ import {
 import { DropdownMenuOption } from "@/components/ui/dropdown-menu-option";
 import {
   createEventGhostBorderButtonClassName,
+  createEventGhostIconButtonClassName,
   createEventOutlineTriggerClassName,
 } from "@/components/calendar/create-event-field";
 import { formatWeekViewMonthTitleForWeek } from "@/lib/calendar-week";
+import { DEFAULT_PERSON_ID, getPersonById } from "@/lib/calendar-events";
 import { cn } from "@/lib/utils";
 
 type CalendarHeaderProps = {
@@ -46,16 +48,18 @@ export function CalendarHeader({
 }: CalendarHeaderProps) {
   const selectedView = VIEW_OPTIONS[1];
   const monthTitle = formatWeekViewMonthTitleForWeek(weekStart);
+  const currentUser = getPersonById(DEFAULT_PERSON_ID);
 
   return (
-    <header className="mb-4 flex h-14 shrink-0 items-center justify-between px-6">
+    <header className="relative z-40 mb-4 flex h-14 shrink-0 items-center justify-between px-6">
       <h1 className="text-[22px] font-semibold text-foreground">{monthTitle}</h1>
 
-      <div className="flex items-center gap-2">
-        <div className="flex items-center">
+      <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center">
           <Button
             variant="ghost"
             size="icon"
+            className={createEventGhostIconButtonClassName}
             onClick={onPreviousWeek}
             aria-label="이전 주"
           >
@@ -64,6 +68,7 @@ export function CalendarHeader({
           <Button
             variant="ghost"
             size="icon"
+            className={createEventGhostIconButtonClassName}
             onClick={onNextWeek}
             aria-label="다음 주"
           >
@@ -74,7 +79,11 @@ export function CalendarHeader({
         <Button
           variant="ghost"
           size="default"
-          className={cn(createEventGhostBorderButtonClassName, HEADER_BUTTON_CLASS)}
+          className={cn(
+            createEventGhostBorderButtonClassName,
+            HEADER_BUTTON_CLASS,
+            "shrink-0"
+          )}
           onClick={onToday}
         >
           오늘
@@ -86,7 +95,11 @@ export function CalendarHeader({
               <Button
                 variant="ghost"
                 size="default"
-                className={cn(createEventOutlineTriggerClassName, HEADER_BUTTON_CLASS)}
+                className={cn(
+                  createEventOutlineTriggerClassName,
+                  HEADER_BUTTON_CLASS,
+                  "shrink-0"
+                )}
               >
                 {selectedView.label}
                 <ChevronDown className="size-3.5 text-muted-foreground" />
@@ -109,9 +122,14 @@ export function CalendarHeader({
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <Avatar>
-          <AvatarFallback className="text-sm font-medium">김</AvatarFallback>
-        </Avatar>
+        {currentUser ? (
+          <PersonAvatar
+            personId={currentUser.id}
+            name={currentUser.name}
+            size="default"
+            showCalendarColor={false}
+          />
+        ) : null}
       </div>
     </header>
   );

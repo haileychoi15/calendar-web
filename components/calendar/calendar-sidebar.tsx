@@ -38,7 +38,7 @@ export function CalendarSidebar({
           className="h-10 w-full gap-1 rounded-lg px-4 py-1 hover:bg-[color-mix(in_oklch,var(--primary),var(--foreground)_10%)]"
           onClick={onCreateEventClick}
         >
-          <Plus className="size-4" />
+          <Plus className="size-4 shrink-0" />
           일정 만들기
         </Button>
       </div>

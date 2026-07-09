@@ -1,8 +1,7 @@
 "use client";
 
-import { Skeleton } from "@/components/ui/skeleton";
 import { PersonAvatar } from "@/components/calendar/person-avatar";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import {
   formatAvailableTimeSlotLabel,
@@ -45,13 +44,15 @@ type AvailableTimeSlotItemProps = {
   onHoverEnd: () => void;
 };
 
-function MiniPersonAvatar({ name }: { name: string }) {
+function MiniPersonAvatar({
+  personId,
+  name,
+}: {
+  personId: string;
+  name: string;
+}) {
   return (
-    <Avatar size="sm" className="size-4 after:hidden">
-      <AvatarFallback className="bg-muted text-[9px] font-medium text-muted-foreground">
-        {name.slice(0, 1)}
-      </AvatarFallback>
-    </Avatar>
+    <PersonAvatar personId={personId} name={name} className="size-4" />
   );
 }
 
@@ -100,6 +101,7 @@ function AvailableTimeSlotItem({
               {unavailableCount === 1 ? (
                 <>
                   <MiniPersonAvatar
+                    personId={slot.unavailableOptionalAttendees[0]!.id}
                     name={slot.unavailableOptionalAttendees[0]!.name}
                   />
                   <span className="truncate">
@@ -111,7 +113,11 @@ function AvailableTimeSlotItem({
                 <>
                   <span className="flex items-center -space-x-1">
                     {slot.unavailableOptionalAttendees.slice(0, 2).map((attendee) => (
-                      <MiniPersonAvatar key={attendee.id} name={attendee.name} />
+                      <MiniPersonAvatar
+                        key={attendee.id}
+                        personId={attendee.id}
+                        name={attendee.name}
+                      />
                     ))}
                   </span>
                   <span>{unavailableCount}명이 참석할 수 없음</span>
@@ -179,7 +185,7 @@ export function AvailableTimesSection({
           <div className="space-y-4">
             {result.allAvailableSlots.length > 0 ? (
               <div className="space-y-2">
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm font-medium text-foreground">
                   모두 참석 가능한 시간대
                 </p>
                 <div className="space-y-2">
@@ -205,7 +211,7 @@ export function AvailableTimesSection({
             {result.showRequiredOnlySection &&
             result.requiredOnlySlots.length > 0 ? (
               <div className="space-y-2">
-                <p className="text-xs text-muted-foreground">
+                <p className="text-sm font-medium text-foreground">
                   필수 참석자가 가능한 시간대
                 </p>
                 <div className="space-y-2">

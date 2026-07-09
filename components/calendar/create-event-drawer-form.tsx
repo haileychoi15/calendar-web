@@ -4,11 +4,11 @@ import {
   AlignLeft,
   ChevronDown,
   Clock,
+  ClockCheck,
   Eye,
   EyeOff,
   MapPin,
   Paperclip,
-  Sparkles,
   User,
   Users,
   Video,
@@ -780,12 +780,12 @@ export function CreateEventDrawerForm({
                 type="button"
                 variant="ghost"
                 className={cn(
-                  "min-w-0 flex-1",
+                  "min-w-0 flex-1 gap-1",
                   createEventGhostBorderButtonClassName
                 )}
                 onClick={handleOpenAvailableTimes}
               >
-                <Sparkles className="size-4" />
+                <ClockCheck className="size-4 shrink-0" />
                 가능 시간 보기
               </Button>
             </div>
@@ -794,7 +794,7 @@ export function CreateEventDrawerForm({
 
         {availableTimesEverOpened ? (
           <CreateEventSection>
-            <CreateEventFieldRow icon={<Sparkles className="size-4" />}>
+            <CreateEventFieldRow icon={<ClockCheck className="size-4" />}>
               <AvailableTimesSection
                 open={availableTimesOpen}
                 onToggle={() => setAvailableTimesOpen((prev) => !prev)}

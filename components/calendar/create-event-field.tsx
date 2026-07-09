@@ -10,7 +10,17 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 
 export const CREATE_EVENT_FIELD_HEIGHT_CLASS = "h-8";
-export const CREATE_EVENT_FIELD_RADIUS_CLASS = "rounded-sm";
+export const CREATE_EVENT_FIELD_RADIUS_CLASS = "rounded-md";
+
+const createEventGhostIconButtonHoverClassName =
+  "rounded-md border border-transparent bg-transparent transition-[background-color,border-color] hover:border-muted focus-visible:border-muted aria-expanded:border-muted dark:hover:border-muted/50 dark:focus-visible:border-muted/50 dark:aria-expanded:border-muted/50";
+
+/** Header ghost icon buttons: border hidden by default, matches hover fill on hover. */
+export const createEventGhostIconButtonClassName = cn(
+  CREATE_EVENT_FIELD_HEIGHT_CLASS,
+  "size-8 p-0",
+  createEventGhostIconButtonHoverClassName
+);
 
 /** Matches calendar header ghost border buttons (오늘). */
 export const createEventGhostBorderButtonClassName = cn(
@@ -212,7 +222,7 @@ export function CreateEventFieldFlash({
         <span
           key={flashKey}
           aria-hidden
-          className="pointer-events-none absolute inset-0 z-0 rounded-sm bg-primary/16 animate-[eventTimeFieldFlash_1.7s_forwards]"
+          className="pointer-events-none absolute inset-0 z-0 rounded-md bg-primary/16 animate-[eventTimeFieldFlash_1.7s_forwards]"
         />
       ) : null}
       <div className="relative z-[1] min-w-0 w-full">{children}</div>

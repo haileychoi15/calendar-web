@@ -1,25 +1,58 @@
 "use client";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { getPersonCheckboxColor } from "@/lib/calendar-data";
+import {
+  DEFAULT_PERSON_AVATAR_SRC,
+  getPersonAvatarSrc,
+} from "@/lib/person-avatars";
 import { cn } from "@/lib/utils";
 
 type PersonAvatarProps = {
   personId: string;
   name: string;
   className?: string;
+  size?: "default" | "sm" | "lg";
+  /** Colored ring from calendar identity. Off for header profile. */
+  showCalendarColor?: boolean;
 };
 
-export function PersonAvatar({ personId, name, className }: PersonAvatarProps) {
+export function PersonAvatar({
+  personId,
+  name,
+  className,
+  size = "sm",
+  showCalendarColor = true,
+}: PersonAvatarProps) {
   const borderColor = getPersonCheckboxColor(personId);
+  const avatarSrc = getPersonAvatarSrc(name);
 
   return (
-    <Avatar size="sm" className={cn("size-6 after:hidden", className)}>
+    <Avatar
+      size={size}
+      className={cn(
+        size === "sm" && "size-6",
+        size === "lg" && "size-10",
+        "after:hidden",
+        showCalendarColor && "border-2",
+        className
+      )}
+      style={showCalendarColor ? { borderColor } : undefined}
+    >
+      <AvatarImage src={avatarSrc} alt={name} />
       <AvatarFallback
-        className="border-2 bg-muted text-[10px] font-medium text-muted-foreground"
-        style={{ borderColor }}
+        className={cn(
+          "overflow-hidden bg-muted p-0",
+          showCalendarColor && "border-2"
+        )}
+        style={showCalendarColor ? { borderColor } : undefined}
       >
-        {name.slice(0, 1)}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={DEFAULT_PERSON_AVATAR_SRC}
+          alt=""
+          className="size-full rounded-full object-cover"
+        />
       </AvatarFallback>
     </Avatar>
   );

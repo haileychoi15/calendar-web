@@ -84,7 +84,7 @@ function AlertDialogTitle({ className, ...props }: AlertDialogPrimitive.Title.Pr
   return (
     <AlertDialogPrimitive.Title
       data-slot="alert-dialog-title"
-      className={cn("text-sm font-semibold text-foreground", className)}
+      className={cn("text-lg font-semibold leading-5 text-foreground", className)}
       {...props}
     />
   )

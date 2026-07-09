@@ -56,7 +56,7 @@ export type EventBlockAppearance = {
   showVacationIcon: boolean;
 };
 
-/** Default calendar owner — matches header avatar (김토스) */
+/** Default calendar owner — matches header avatar (최유영) */
 export const DEFAULT_PERSON_ID = "designer1";
 
 const data = eventsData as EventsData;
