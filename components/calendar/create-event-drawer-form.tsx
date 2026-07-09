@@ -69,6 +69,7 @@ import {
   DEFAULT_PERSON_ID,
   getPeople,
   getPersonById,
+  type CreateMeetingEventInput,
   type Person,
 } from "@/lib/calendar-events";
 import {
@@ -125,6 +126,7 @@ type CreateEventDrawerFormProps = {
   hoveredAvailableSlotKey: string | null;
   selectedAvailableSlotKey: string | null;
   onSelectAvailableSlot: (slot: AvailableTimeSlot | null) => void;
+  onSendInvite: (input: CreateMeetingEventInput) => void;
 };
 
 const ATTENDEE_ACTION_BUTTON_CLASS =
@@ -174,6 +176,7 @@ export function CreateEventDrawerForm({
   hoveredAvailableSlotKey,
   selectedAvailableSlotKey,
   onSelectAvailableSlot,
+  onSendInvite,
 }: CreateEventDrawerFormProps) {
   const defaultTimes = useMemo(() => getDefaultEventTimes(), []);
   const titleInputRef = useRef<HTMLInputElement>(null);
@@ -531,6 +534,27 @@ export function CreateEventDrawerForm({
 
   const handleDiscardAndClose = () => {
     setConfirmCloseOpen(false);
+    resetForm();
+    onClose();
+  };
+
+  const handleSendInvite = () => {
+    const personIds = attendees
+      .map((attendee) => attendee.id)
+      .filter((personId) => isCalendarPersonId(personId));
+
+    if (personIds.length === 0) return;
+
+    onSendInvite({
+      title: title.trim() || "회의 (제목 없음)",
+      date: eventDate,
+      start: startTime,
+      end: endTime,
+      type: eventType,
+      location: location.trim() || videoLink.trim() || null,
+      personIds,
+    });
+
     resetForm();
     onClose();
   };
@@ -975,6 +999,7 @@ export function CreateEventDrawerForm({
         <Button
           type="button"
           className="h-10 w-full rounded-lg hover:bg-[color-mix(in_oklch,var(--primary),var(--foreground)_10%)]"
+          onClick={handleSendInvite}
         >
           초대보내기
         </Button>

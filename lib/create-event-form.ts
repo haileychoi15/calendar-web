@@ -1,4 +1,4 @@
-import { addHours, addMinutes, format } from "date-fns";
+import { addDays, addMinutes, format } from "date-fns";
 import { ko } from "date-fns/locale";
 
 import { getKstParts } from "@/lib/calendar-week";
@@ -144,10 +144,35 @@ export function snapToMeetingDurationMinutes(totalMinutes: number) {
 
 export function getDefaultEventTimes() {
   const now = new Date();
+  const parts = getKstParts(now);
+
+  let targetHour = parts.hour;
+  if (targetHour < 12) {
+    targetHour = 12;
+  } else if (parts.minute > 0 || parts.second > 0 || parts.millisecond > 0) {
+    targetHour += 1;
+  }
+
+  let year = parts.year;
+  let month = parts.month;
+  let day = parts.day;
+
+  if (targetHour >= 24) {
+    const tomorrow = addDays(createKstDateTime(year, month, day, 12, 0), 1);
+    const tomorrowParts = getKstParts(tomorrow);
+    year = tomorrowParts.year;
+    month = tomorrowParts.month;
+    day = tomorrowParts.day;
+    targetHour = 12;
+  }
+
+  const start = createKstDateTime(year, month, day, targetHour, 0);
+  const end = addKstMinutes(start, DEFAULT_MEETING_DURATION_MINUTES);
+
   return {
-    date: now,
-    start: now,
-    end: addHours(now, 1),
+    date: start,
+    start,
+    end,
   };
 }
 

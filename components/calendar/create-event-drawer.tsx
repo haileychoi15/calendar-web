@@ -4,6 +4,7 @@ import { useEffect } from "react";
 
 import { CreateEventDrawerForm } from "@/components/calendar/create-event-drawer-form";
 import type { AvailableTimeSlot } from "@/lib/available-times";
+import type { CreateMeetingEventInput } from "@/lib/calendar-events";
 import { cn } from "@/lib/utils";
 
 export const SIDEBAR_WIDTH_PX = 240;
@@ -26,6 +27,7 @@ type CreateEventDrawerProps = {
   hoveredAvailableSlotKey: string | null;
   selectedAvailableSlotKey: string | null;
   onSelectAvailableSlot: (slot: AvailableTimeSlot | null) => void;
+  onSendInvite: (input: CreateMeetingEventInput) => void;
 };
 
 export function CreateEventDrawer({
@@ -39,6 +41,7 @@ export function CreateEventDrawer({
   hoveredAvailableSlotKey,
   selectedAvailableSlotKey,
   onSelectAvailableSlot,
+  onSendInvite,
 }: CreateEventDrawerProps) {
   useEffect(() => {
     if (!open) return;
@@ -81,6 +84,7 @@ export function CreateEventDrawer({
           hoveredAvailableSlotKey={hoveredAvailableSlotKey}
           selectedAvailableSlotKey={selectedAvailableSlotKey}
           onSelectAvailableSlot={onSelectAvailableSlot}
+          onSendInvite={onSendInvite}
         />
       </div>
     </div>

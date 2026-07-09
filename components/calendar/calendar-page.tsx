@@ -1,5 +1,7 @@
 "use client";
 
+import { toast } from "sonner";
+
 import { CalendarHeader } from "@/components/calendar/calendar-header";
 import { CalendarWeekView } from "@/components/calendar/calendar-week-view";
 import { CalendarSidebar } from "@/components/calendar/calendar-sidebar";
@@ -8,7 +10,11 @@ import {
   CreateEventDrawer,
 } from "@/components/calendar/create-event-drawer";
 import { HOLIDAY_CALENDAR_ID } from "@/lib/calendar-data";
-import { getPeople } from "@/lib/calendar-events";
+import {
+  addMeetingEvents,
+  type CreateMeetingEventInput,
+  getPeople,
+} from "@/lib/calendar-events";
 import type { AvailableTimeSlot } from "@/lib/available-times";
 import { getAvailableTimeSlotKey } from "@/lib/available-times";
 import { getWeekStart, isDateInWeek } from "@/lib/calendar-week";
@@ -36,6 +42,7 @@ export function CalendarPage() {
   const [drawerAttendeeCalendarIds, setDrawerAttendeeCalendarIds] = useState<
     string[]
   >([]);
+  const [eventsRevision, setEventsRevision] = useState(0);
   const [createEventOpen, setCreateEventOpen] = useState(false);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<
     AvailableTimeSlot[]
@@ -156,6 +163,15 @@ export function CalendarPage() {
     []
   );
 
+  const handleSendInvite = useCallback((input: CreateMeetingEventInput) => {
+    addMeetingEvents(input);
+    setEventsRevision((revision) => revision + 1);
+    setSelectedDate(input.date);
+    setWeekStart(getWeekStart(input.date));
+    setMiniClickHighlight(null);
+    toast.success("초대를 보냈어요.");
+  }, []);
+
   const handleCreateEventOpenChange = useCallback(
     (open: boolean) => {
       if (open) {
@@ -213,6 +229,7 @@ export function CalendarPage() {
           hoveredAvailableSlotKey={hoveredAvailableSlotKey}
           selectedAvailableSlotKey={selectedAvailableSlotKey}
           onSelectAvailableSlot={handleSelectAvailableSlot}
+          onSendInvite={handleSendInvite}
         />
       </div>
       <div
@@ -229,6 +246,7 @@ export function CalendarPage() {
         />
         <CalendarWeekView
           weekStart={weekStart}
+          eventsRevision={eventsRevision}
           visiblePersonIds={weekViewVisibleIdSet}
           availableTimeSlots={availableTimeSlots}
           hoveredAvailableSlotKey={hoveredAvailableSlotKey}

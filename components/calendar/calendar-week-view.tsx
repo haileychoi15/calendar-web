@@ -41,6 +41,7 @@ import { cn } from "@/lib/utils";
 
 type CalendarWeekViewProps = {
   weekStart: Date;
+  eventsRevision: number;
   highlight: { date: Date; nonce: number } | null;
   visiblePersonIds: ReadonlySet<string>;
   availableTimeSlots?: AvailableTimeSlot[];
@@ -142,6 +143,7 @@ function NowIndicator({ now }: NowIndicatorProps) {
 
 export function CalendarWeekView({
   weekStart,
+  eventsRevision,
   highlight,
   visiblePersonIds,
   availableTimeSlots = [],
@@ -170,7 +172,7 @@ export function CalendarWeekView({
     }
 
     return map;
-  }, [weekDays, visiblePersonIds, visiblePersonIdsKey]);
+  }, [weekDays, visiblePersonIds, visiblePersonIdsKey, eventsRevision]);
 
   useEffect(() => {
     const container = scrollRef.current;

@@ -150,6 +150,47 @@ function toCalendarEvent(raw: RawCalendarEvent, index: number): CalendarEvent {
 
 const calendarEvents = data.events.map(toCalendarEvent);
 
+const runtimeEvents: CalendarEvent[] = [];
+let runtimeEventIdCounter = 0;
+
+export type CreateMeetingEventInput = {
+  title: string;
+  date: Date;
+  start: Date;
+  end: Date;
+  type: EventType;
+  location: string | null;
+  personIds: string[];
+  status?: EventStatus;
+};
+
+function getAllCalendarEvents() {
+  return [...calendarEvents, ...runtimeEvents];
+}
+
+export function addMeetingEvents(input: CreateMeetingEventInput) {
+  const dateKey = toKstDateKey(input.date);
+  const createdEvents = input.personIds.map((personId) => {
+    runtimeEventIdCounter += 1;
+
+    return {
+      id: `runtime-${runtimeEventIdCounter}`,
+      personId,
+      title: input.title,
+      date: dateKey,
+      start: input.start,
+      end: input.end,
+      type: input.type,
+      location: input.location,
+      status: input.status ?? "confirmed",
+      isAllDay: isAllDayEvent(input.type, input.start, input.end),
+    } satisfies CalendarEvent;
+  });
+
+  runtimeEvents.push(...createdEvents);
+  return createdEvents;
+}
+
 export function getPeople() {
   return data.people;
 }
@@ -251,7 +292,7 @@ export function getEventLayout(event: CalendarEvent): EventLayout {
 }
 
 export function getEventsForPerson(personId: string = DEFAULT_PERSON_ID) {
-  return calendarEvents.filter((event) => event.personId === personId);
+  return getAllCalendarEvents().filter((event) => event.personId === personId);
 }
 
 export function getEventsForDate(
@@ -260,7 +301,7 @@ export function getEventsForDate(
   visiblePersonIds?: ReadonlySet<string>
 ) {
   const dateKey = toKstDateKey(date);
-  let events = calendarEvents.filter((event) => event.date === dateKey);
+  let events = getAllCalendarEvents().filter((event) => event.date === dateKey);
 
   if (personId) {
     events = events.filter((event) => event.personId === personId);
