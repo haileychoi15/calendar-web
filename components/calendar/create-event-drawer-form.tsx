@@ -31,9 +31,10 @@ import {
   createEventTimeSelectStartTriggerClassName,
   createEventTimeSelectEndTriggerClassName,
 } from "@/components/calendar/create-event-field";
+import { AttendeePickerDropdown } from "@/components/calendar/attendee-picker-dropdown";
 import { PersonAvatar } from "@/components/calendar/person-avatar";
-import { DropdownListPanel, DropdownMenuOption, DropdownOption } from "@/components/ui/dropdown-list";
 import { IconButtonTooltip } from "@/components/ui/icon-button-tooltip";
+import { DropdownListPanel, DropdownMenuOption, DropdownOption } from "@/components/ui/dropdown-list";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -98,6 +99,7 @@ import {
   type AvailableTimeSlot,
   type AvailableTimesResult,
 } from "@/lib/available-times";
+import { getAttendeePickerTeamGroups } from "@/lib/attendee-picker-teams";
 import { cn } from "@/lib/utils";
 
 type AttendeeRequirement = "required" | "optional";
@@ -129,8 +131,6 @@ function isCalendarPersonId(personId: string) {
   return getPersonById(personId) !== undefined;
 }
 
-const INITIAL_ATTENDEE_IDS = ["po1", "fe1", "be1"] as const;
-
 function getAttendeeCalendarPersonIds(attendees: Attendee[]) {
   return attendees
     .map((attendee) => attendee.id)
@@ -139,7 +139,8 @@ function getAttendeeCalendarPersonIds(attendees: Attendee[]) {
 
 function buildInitialAttendees(): Attendee[] {
   const organizer = getPersonById(DEFAULT_PERSON_ID);
-  const attendees: Attendee[] = organizer
+
+  return organizer
     ? [
         {
           id: organizer.id,
@@ -149,19 +150,6 @@ function buildInitialAttendees(): Attendee[] {
         },
       ]
     : [];
-
-  for (const personId of INITIAL_ATTENDEE_IDS) {
-    const person = getPersonById(personId);
-    if (person) {
-      attendees.push({
-        id: person.id,
-        name: person.name,
-        requirement: "required",
-      });
-    }
-  }
-
-  return attendees;
 }
 
 function personToAttendee(person: Person): Attendee {
@@ -236,22 +224,20 @@ export function CreateEventDrawerForm({
     [attendees]
   );
 
-  const attendeeSuggestions = useMemo(() => {
-    const query = attendeeQuery.trim().toLowerCase();
+  const attendeePickerTeams = useMemo(
+    () =>
+      getAttendeePickerTeamGroups({
+        excludedPersonIds: attendeeIds,
+        query: attendeeQuery,
+      }),
+    [attendeeIds, attendeeQuery]
+  );
 
-    return getPeople().filter((person) => {
-      if (attendeeIds.has(person.id)) return false;
-      if (!query) return true;
+  const showAttendeePicker =
+    isAttendeeSearchFocused && attendeePickerTeams.length > 0;
 
-      return (
-        person.name.toLowerCase().includes(query) ||
-        person.role.toLowerCase().includes(query)
-      );
-    });
-  }, [attendeeIds, attendeeQuery]);
-
-  const showAttendeeSuggestions =
-    isAttendeeSearchFocused && attendeeSuggestions.length > 0;
+  const hasOnlyOrganizerAttendee =
+    attendees.length === 1 && attendees[0]?.isOrganizer === true;
 
   const meetingRoomSuggestions = useMemo(() => {
     const query = location.trim().toLowerCase();
@@ -331,12 +317,29 @@ export function CreateEventDrawerForm({
     return () => window.clearTimeout(timeoutId);
   }, [availableTimeAttendees, availableTimesOpen, meetingDurationMinutes]);
 
-  const addAttendee = (attendee: Attendee) => {
+  const addAttendee = (attendee: Attendee, options?: { clearQuery?: boolean }) => {
     setAttendees((current) => {
       if (current.some((item) => item.id === attendee.id)) return current;
       return [...current, attendee];
     });
-    setAttendeeQuery("");
+    if (options?.clearQuery ?? false) {
+      setAttendeeQuery("");
+    }
+  };
+
+  const addAttendeesFromPeople = (people: Person[]) => {
+    setAttendees((current) => {
+      const existing = new Set(current.map((item) => item.id));
+      const next = [...current];
+
+      for (const person of people) {
+        if (existing.has(person.id)) continue;
+        next.push(personToAttendee(person));
+        existing.add(person.id);
+      }
+
+      return next;
+    });
   };
 
   const handleAttendeeFocus = () => {
@@ -376,18 +379,20 @@ export function CreateEventDrawerForm({
     const query = attendeeQuery.trim();
     if (!query) return;
 
-    const matchedPerson = attendeeSuggestions.find(
-      (person) => person.name.toLowerCase() === query.toLowerCase()
-    );
+    const matchedPerson = attendeePickerTeams
+      .flatMap((team) => team.people)
+      .find((person) => person.name.toLowerCase() === query.toLowerCase());
 
     if (matchedPerson) {
-      addAttendee(personToAttendee(matchedPerson));
+      addAttendee(personToAttendee(matchedPerson), { clearQuery: true });
       return;
     }
 
     const guestId = `guest-${query}`;
     if (!attendeeIds.has(guestId)) {
-      addAttendee({ id: guestId, name: query, requirement: "required" });
+      addAttendee({ id: guestId, name: query, requirement: "required" }, {
+        clearQuery: true,
+      });
     } else {
       setAttendeeQuery("");
     }
@@ -628,27 +633,14 @@ export function CreateEventDrawerForm({
                 />
               </CreateEventInputShell>
 
-              {showAttendeeSuggestions ? (
-                <DropdownListPanel className="absolute inset-x-0 top-full z-30 mt-1">
-                  <ul className="max-h-40 overflow-y-auto">
-                    {attendeeSuggestions.map((person) => (
-                      <li key={person.id} className="w-full">
-                        <DropdownOption
-                          contentClassName="flex items-center gap-2"
-                          onClick={() => addAttendee(personToAttendee(person))}
-                        >
-                          <PersonAvatar personId={person.id} name={person.name} />
-                          <span className="min-w-0 flex-1 truncate text-foreground">
-                            {person.name}
-                          </span>
-                          <span className="shrink-0 text-xs text-muted-foreground">
-                            {person.role}
-                          </span>
-                        </DropdownOption>
-                      </li>
-                    ))}
-                  </ul>
-                </DropdownListPanel>
+              {showAttendeePicker ? (
+                <AttendeePickerDropdown
+                  teams={attendeePickerTeams}
+                  onSelectPerson={(person) =>
+                    addAttendee(personToAttendee(person))
+                  }
+                  onSelectTeam={addAttendeesFromPeople}
+                />
               ) : null}
             </div>
 
@@ -749,50 +741,52 @@ export function CreateEventDrawerForm({
               ))}
             </ul>
 
-            <div className="flex items-center gap-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={
-                    <Button
-                      variant="ghost"
-                      size="default"
-                      className={createEventOutlineTriggerClassName}
-                    >
-                      {meetingDurationLabel}
-                      <ChevronDown className="size-3.5 text-muted-foreground" />
-                    </Button>
-                  }
-                />
-                <DropdownMenuContent align="start">
-                  {MEETING_DURATION_OPTIONS.map((option) => (
-                    <DropdownMenuOption
-                      key={option.minutes}
-                      selected={meetingDurationMinutes === option.minutes}
-                      onClick={() => handleMeetingDurationChange(option.minutes)}
-                    >
-                      {option.label}
-                    </DropdownMenuOption>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
+            {hasOnlyOrganizerAttendee ? null : (
+              <div className="flex items-center gap-2">
+                <DropdownMenu>
+                  <DropdownMenuTrigger
+                    render={
+                      <Button
+                        variant="ghost"
+                        size="default"
+                        className={createEventOutlineTriggerClassName}
+                      >
+                        {meetingDurationLabel}
+                        <ChevronDown className="size-3.5 text-muted-foreground" />
+                      </Button>
+                    }
+                  />
+                  <DropdownMenuContent align="start">
+                    {MEETING_DURATION_OPTIONS.map((option) => (
+                      <DropdownMenuOption
+                        key={option.minutes}
+                        selected={meetingDurationMinutes === option.minutes}
+                        onClick={() => handleMeetingDurationChange(option.minutes)}
+                      >
+                        {option.label}
+                      </DropdownMenuOption>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
 
-              <Button
-                type="button"
-                variant="ghost"
-                className={cn(
-                  "min-w-0 flex-1 gap-1",
-                  createEventGhostBorderButtonClassName
-                )}
-                onClick={handleOpenAvailableTimes}
-              >
-                <ClockCheck className="size-4 shrink-0" />
-                가능 시간 보기
-              </Button>
-            </div>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className={cn(
+                    "min-w-0 flex-1 gap-1",
+                    createEventGhostBorderButtonClassName
+                  )}
+                  onClick={handleOpenAvailableTimes}
+                >
+                  <ClockCheck className="size-4 shrink-0" />
+                  가능 시간 보기
+                </Button>
+              </div>
+            )}
           </CreateEventFieldRow>
         </CreateEventSection>
 
-        {availableTimesEverOpened ? (
+        {availableTimesEverOpened && !hasOnlyOrganizerAttendee ? (
           <CreateEventSection>
             <CreateEventFieldRow icon={<ClockCheck className="size-4" />}>
               <AvailableTimesSection

@@ -7,6 +7,7 @@ import type { DayButton, WeekProps } from "react-day-picker";
 
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
+import { IconButtonTooltip } from "@/components/ui/icon-button-tooltip";
 import {
   formatMonthTitle,
   goToNextMonth,
@@ -113,26 +114,30 @@ export function MiniCalendar({
           {formatMonthTitle(month)}
         </p>
         <div className="flex items-center">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-xs"
-            className="size-6 rounded-[5px]"
-            onClick={() => setMonth((date) => goToPreviousMonth(date))}
-            aria-label="이전 달"
-          >
-            <ChevronLeft className="size-4 text-muted-foreground" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon-xs"
-            className="size-6 rounded-[5px]"
-            onClick={() => setMonth((date) => goToNextMonth(date))}
-            aria-label="다음 달"
-          >
-            <ChevronRight className="size-4 text-muted-foreground" />
-          </Button>
+          <IconButtonTooltip label="이전 달">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              className="size-6 rounded-[5px]"
+              onClick={() => setMonth((date) => goToPreviousMonth(date))}
+              aria-label="이전 달"
+            >
+              <ChevronLeft className="size-4 text-muted-foreground" />
+            </Button>
+          </IconButtonTooltip>
+          <IconButtonTooltip label="다음 달">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-xs"
+              className="size-6 rounded-[5px]"
+              onClick={() => setMonth((date) => goToNextMonth(date))}
+              aria-label="다음 달"
+            >
+              <ChevronRight className="size-4 text-muted-foreground" />
+            </Button>
+          </IconButtonTooltip>
         </div>
       </div>
 

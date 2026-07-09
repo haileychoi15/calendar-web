@@ -34,7 +34,7 @@ export function PersonAvatar({
         size === "sm" && "size-6",
         size === "lg" && "size-10",
         "after:hidden",
-        showCalendarColor && "border-2",
+        showCalendarColor ? "border-2" : "border-[0.5px] border-border",
         className
       )}
       style={showCalendarColor ? { borderColor } : undefined}
@@ -43,7 +43,7 @@ export function PersonAvatar({
       <AvatarFallback
         className={cn(
           "overflow-hidden bg-muted p-0",
-          showCalendarColor && "border-2"
+          showCalendarColor ? "border-2" : "border-[0.5px] border-border"
         )}
         style={showCalendarColor ? { borderColor } : undefined}
       >

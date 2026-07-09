@@ -52,7 +52,12 @@ function MiniPersonAvatar({
   name: string;
 }) {
   return (
-    <PersonAvatar personId={personId} name={name} className="size-4" />
+    <PersonAvatar
+      personId={personId}
+      name={name}
+      className="size-4"
+      showCalendarColor={false}
+    />
   );
 }
 

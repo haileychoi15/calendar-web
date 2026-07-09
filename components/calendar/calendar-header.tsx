@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { DropdownMenuOption } from "@/components/ui/dropdown-menu-option";
+import { IconButtonTooltip } from "@/components/ui/icon-button-tooltip";
 import {
   createEventGhostBorderButtonClassName,
   createEventGhostIconButtonClassName,
@@ -56,24 +57,28 @@ export function CalendarHeader({
 
       <div className="flex shrink-0 items-center gap-2">
         <div className="flex shrink-0 items-center">
-          <Button
-            variant="ghost"
-            size="icon"
-            className={createEventGhostIconButtonClassName}
-            onClick={onPreviousWeek}
-            aria-label="이전 주"
-          >
-            <ChevronLeft className="text-muted-foreground" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className={createEventGhostIconButtonClassName}
-            onClick={onNextWeek}
-            aria-label="다음 주"
-          >
-            <ChevronRight className="text-muted-foreground" />
-          </Button>
+          <IconButtonTooltip label="이전 기간">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={createEventGhostIconButtonClassName}
+              onClick={onPreviousWeek}
+              aria-label="이전 기간"
+            >
+              <ChevronLeft className="text-muted-foreground" />
+            </Button>
+          </IconButtonTooltip>
+          <IconButtonTooltip label="다음 기간">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={createEventGhostIconButtonClassName}
+              onClick={onNextWeek}
+              aria-label="다음 기간"
+            >
+              <ChevronRight className="text-muted-foreground" />
+            </Button>
+          </IconButtonTooltip>
         </div>
 
         <Button
@@ -86,7 +91,7 @@ export function CalendarHeader({
           )}
           onClick={onToday}
         >
-          오늘
+          오늘 보기
         </Button>
 
         <DropdownMenu>

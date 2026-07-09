@@ -62,8 +62,8 @@ const PERSON_TEAMS: Record<string, string> = {
   po1: "Product",
   fe1: "Product",
   be1: "Product",
-  sales1: "Marketing",
-  marketer1: "Sales",
+  sales1: "Sales",
+  marketer1: "Marketing",
 };
 
 function personToCalendarItem(person: ReturnType<typeof getPeople>[number]): CalendarItem {
