@@ -2,31 +2,26 @@ import { getPersonById, type Person } from "@/lib/calendar-events";
 
 export type AttendeePickerTeam = {
   id: string;
-  label: string;
+  label: string | null;
   personIds: readonly string[];
 };
 
 export const ATTENDEE_PICKER_TEAMS: readonly AttendeePickerTeam[] = [
   {
     id: "product",
-    label: "프로덕트팀",
+    label: "팀원",
     personIds: ["po1", "fe1", "be1"],
   },
   {
-    id: "marketing",
-    label: "마케팅팀",
-    personIds: ["marketer1"],
-  },
-  {
-    id: "sales",
-    label: "세일즈팀",
-    personIds: ["sales1"],
+    id: "cross-functional",
+    label: null,
+    personIds: ["marketer1", "sales1"],
   },
 ] as const;
 
 export type AttendeePickerTeamGroup = {
   id: string;
-  label: string;
+  label: string | null;
   people: Person[];
 };
 
@@ -48,7 +43,7 @@ export function getAttendeePickerTeamGroups({
         if (!normalizedQuery) return true;
 
         return (
-          team.label.toLowerCase().includes(normalizedQuery) ||
+          team.label?.toLowerCase().includes(normalizedQuery) ||
           person.name.toLowerCase().includes(normalizedQuery) ||
           person.role.toLowerCase().includes(normalizedQuery)
         );

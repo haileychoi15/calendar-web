@@ -30,28 +30,32 @@ export function AttendeePickerDropdown({
           <section
             key={team.id}
             className={cn(
-              "px-3 py-2",
+              "px-2 pt-2 pb-2",
               index > 0 && "border-t border-border"
             )}
           >
-            <div className="mb-1 flex items-center justify-between gap-2">
-              <p className="text-sm font-medium text-muted-foreground">{team.label}</p>
-              <button
-                type="button"
-                className="shrink-0 rounded-sm px-1 py-0.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
-                onMouseDown={preventBlurOnMouseDown}
-                onClick={() => onSelectTeam(team.people)}
-              >
-                모두 선택
-              </button>
-            </div>
+            {team.label ? (
+              <div className="mb-1 flex items-center justify-between gap-2 px-1.5">
+                <p className="text-sm font-medium text-muted-foreground">
+                  {team.label}
+                </p>
+                <button
+                  type="button"
+                  className="shrink-0 rounded-sm px-1 py-0.5 text-xs font-medium text-primary transition-colors hover:bg-primary/10"
+                  onMouseDown={preventBlurOnMouseDown}
+                  onClick={() => onSelectTeam(team.people)}
+                >
+                  모두 선택
+                </button>
+              </div>
+            ) : null}
 
             <ul className="space-y-0.5">
               {team.people.map((person) => (
                 <li key={person.id}>
                   <button
                     type="button"
-                    className="flex w-full items-center gap-2 rounded-md px-1 py-1.5 text-left transition-colors hover:bg-muted"
+                    className="flex w-full items-center gap-2 rounded-md px-1.5 py-1.5 text-left transition-colors hover:bg-muted"
                     onMouseDown={preventBlurOnMouseDown}
                     onClick={() => onSelectPerson(person)}
                   >

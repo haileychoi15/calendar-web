@@ -36,6 +36,7 @@ import { PersonAvatar } from "@/components/calendar/person-avatar";
 import { IconButtonTooltip } from "@/components/ui/icon-button-tooltip";
 import { DropdownListPanel, DropdownMenuOption, DropdownOption } from "@/components/ui/dropdown-list";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
 import {
   AlertDialog,
@@ -197,6 +198,7 @@ export function CreateEventDrawerForm({
   const [videoLink, setVideoLink] = useState("");
   const [description, setDescription] = useState("");
   const [attachments, setAttachments] = useState("");
+  const [sendInviteEmail, setSendInviteEmail] = useState(true);
   const [confirmCloseOpen, setConfirmCloseOpen] = useState(false);
   const [availableTimesEverOpened, setAvailableTimesEverOpened] = useState(false);
   const [availableTimesOpen, setAvailableTimesOpen] = useState(false);
@@ -523,6 +525,7 @@ export function CreateEventDrawerForm({
     setVideoLink("");
     setDescription("");
     setAttachments("");
+    setSendInviteEmail(true);
 
     setAvailableTimesOpen(false);
     setAvailableTimesEverOpened(false);
@@ -996,6 +999,15 @@ export function CreateEventDrawerForm({
       </div>
 
       <div className="shrink-0 border-t border-border bg-background p-4">
+        <label className="mb-3 flex cursor-pointer items-center gap-2">
+          <Checkbox
+            checked={sendInviteEmail}
+            onCheckedChange={setSendInviteEmail}
+          />
+          <span className="text-sm text-foreground">
+            참석자에게 초대 이메일 보내기
+          </span>
+        </label>
         <Button
           type="button"
           className="h-10 w-full rounded-lg hover:bg-[color-mix(in_oklch,var(--primary),var(--foreground)_10%)]"

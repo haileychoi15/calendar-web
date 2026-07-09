@@ -91,7 +91,7 @@ export function CalendarHeader({
           )}
           onClick={onToday}
         >
-          오늘 보기
+          오늘
         </Button>
 
         <DropdownMenu>
