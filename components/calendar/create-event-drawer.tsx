@@ -15,8 +15,11 @@ export const CREATE_EVENT_DRAWER_MAIN_PUSH_PX =
 type CreateEventDrawerProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  visiblePersonIds: ReadonlySet<string>;
-  onTogglePersonCalendarVisibility: (personId: string, visible: boolean) => void;
+  attendeeVisibleCalendarIds: ReadonlySet<string>;
+  onToggleAttendeeCalendarVisibility: (
+    personId: string,
+    visible: boolean
+  ) => void;
   onAttendeeCalendarIdsChange: (personIds: string[]) => void;
   onAvailableTimeSlotsChange: (slots: AvailableTimeSlot[]) => void;
   onHoveredAvailableSlotKeyChange: (slotKey: string | null) => void;
@@ -28,8 +31,8 @@ type CreateEventDrawerProps = {
 export function CreateEventDrawer({
   open,
   onOpenChange,
-  visiblePersonIds,
-  onTogglePersonCalendarVisibility,
+  attendeeVisibleCalendarIds,
+  onToggleAttendeeCalendarVisibility,
   onAttendeeCalendarIdsChange,
   onAvailableTimeSlotsChange,
   onHoveredAvailableSlotKeyChange,
@@ -70,8 +73,8 @@ export function CreateEventDrawer({
         <CreateEventDrawerForm
           open={open}
           onClose={() => onOpenChange(false)}
-          visiblePersonIds={visiblePersonIds}
-          onTogglePersonCalendarVisibility={onTogglePersonCalendarVisibility}
+          attendeeVisibleCalendarIds={attendeeVisibleCalendarIds}
+          onToggleAttendeeCalendarVisibility={onToggleAttendeeCalendarVisibility}
           onAttendeeCalendarIdsChange={onAttendeeCalendarIdsChange}
           onAvailableTimeSlotsChange={onAvailableTimeSlotsChange}
           onHoveredAvailableSlotKeyChange={onHoveredAvailableSlotKeyChange}

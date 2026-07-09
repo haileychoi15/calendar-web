@@ -11,6 +11,7 @@ type CalendarListSectionProps = {
   title: string;
   calendars: CalendarItem[];
   visibleCalendarIds: ReadonlySet<string>;
+  disabled?: boolean;
   onToggleCalendar: (calendarId: string, visible: boolean) => void;
 };
 
@@ -22,6 +23,7 @@ export function CalendarListSection({
   title,
   calendars,
   visibleCalendarIds,
+  disabled = false,
   onToggleCalendar,
 }: CalendarListSectionProps) {
   return (
@@ -35,26 +37,31 @@ export function CalendarListSection({
           <li key={calendar.id}>
             <label
               className={cn(
-                "flex w-full cursor-pointer items-center gap-1.5 rounded-md px-2 py-1.5",
-                "transition-colors duration-default ease-out hover:bg-muted"
+                "flex w-full items-center gap-1.5 rounded-md px-2 py-1.5",
+                disabled
+                  ? "cursor-default"
+                  : "cursor-pointer transition-colors duration-default ease-out hover:bg-muted"
               )}
+              aria-disabled={disabled || undefined}
             >
               <CalendarColorCheckbox
                 color={calendar.color}
                 checkboxColor={calendar.checkboxColor}
                 checked={visibleCalendarIds.has(calendar.id)}
+                disabled={disabled}
                 onCheckedChange={(checked) =>
                   onToggleCalendar(calendar.id, checked)
                 }
               />
-              <span className="min-w-0 flex-1 truncate text-sm leading-5 tracking-tight">
-                <span className="text-foreground">{calendar.name}</span>
-                {calendar.team && (
-                  <>
-                    <span className="text-xs text-muted-foreground"> · </span>
-                    <span className="text-xs text-muted-foreground">{calendar.team}</span>
-                  </>
-                )}
+              <span className="min-w-0 flex-1 truncate">
+                <span className="text-sm font-medium text-foreground">
+                  {calendar.name}
+                </span>
+                {calendar.role ? (
+                  <span className="ml-1.5 text-xs text-muted-foreground">
+                    {calendar.role}
+                  </span>
+                ) : null}
               </span>
             </label>
           </li>

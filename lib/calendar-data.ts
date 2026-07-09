@@ -10,7 +10,7 @@ export type CalendarColor =
 export type CalendarItem = {
   id: string;
   name: string;
-  team?: string;
+  role?: string;
   color?: CalendarColor;
   /** Clean sidebar checkbox color (Toss palette). */
   checkboxColor?: string;
@@ -57,13 +57,14 @@ export function getPersonCheckboxColor(personId: string) {
   return PERSON_CHECKBOX_COLORS[personId] ?? "var(--grey300)";
 }
 
-const PERSON_TEAMS: Record<string, string> = {
-  designer1: "Product",
-  po1: "Product",
-  fe1: "Product",
-  be1: "Product",
-  sales1: "Sales",
-  marketer1: "Marketing",
+const TEAM_MEMBER_CALENDAR_IDS = new Set(["po1", "fe1", "be1"]);
+
+export const HOLIDAY_CALENDAR_ID = "holidays";
+
+const HOLIDAY_CALENDAR: CalendarItem = {
+  id: HOLIDAY_CALENDAR_ID,
+  name: "공휴일",
+  checkboxColor: "var(--grey400)",
 };
 
 function personToCalendarItem(person: ReturnType<typeof getPeople>[number]): CalendarItem {
@@ -72,7 +73,7 @@ function personToCalendarItem(person: ReturnType<typeof getPeople>[number]): Cal
   return {
     id: person.id,
     name: person.name,
-    team: PERSON_TEAMS[person.id],
+    role: person.role,
     ...(isMine
       ? { color: "blue" as const }
       : {
@@ -81,10 +82,13 @@ function personToCalendarItem(person: ReturnType<typeof getPeople>[number]): Cal
   };
 }
 
-export const MY_CALENDARS: CalendarItem[] = getPeople()
-  .filter((person) => person.id === DEFAULT_PERSON_ID)
-  .map(personToCalendarItem);
+export const MY_CALENDARS: CalendarItem[] = [
+  ...getPeople()
+    .filter((person) => person.id === DEFAULT_PERSON_ID)
+    .map(personToCalendarItem),
+  HOLIDAY_CALENDAR,
+];
 
 export const OTHER_CALENDARS: CalendarItem[] = getPeople()
-  .filter((person) => person.id !== DEFAULT_PERSON_ID)
+  .filter((person) => TEAM_MEMBER_CALENDAR_IDS.has(person.id))
   .map(personToCalendarItem);

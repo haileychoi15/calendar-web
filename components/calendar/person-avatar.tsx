@@ -12,7 +12,7 @@ type PersonAvatarProps = {
   personId: string;
   name: string;
   className?: string;
-  size?: "default" | "sm" | "lg";
+  size?: "default" | "xs" | "sm" | "lg";
   /** Colored ring from calendar identity. Off for header profile. */
   showCalendarColor?: boolean;
 };
@@ -31,6 +31,7 @@ export function PersonAvatar({
     <Avatar
       size={size}
       className={cn(
+        size === "xs" && "size-4",
         size === "sm" && "size-6",
         size === "lg" && "size-10",
         "after:hidden",

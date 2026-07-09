@@ -11,6 +11,7 @@ type CalendarSidebarProps = {
   currentDate: Date;
   weekStart: Date;
   visiblePersonIds: ReadonlySet<string>;
+  calendarListDisabled?: boolean;
   onToggleCalendarVisibility: (calendarId: string, visible: boolean) => void;
   onDateSelect: (date: Date) => void;
   onCreateEventClick: () => void;
@@ -20,6 +21,7 @@ export function CalendarSidebar({
   currentDate,
   weekStart,
   visiblePersonIds,
+  calendarListDisabled = false,
   onToggleCalendarVisibility,
   onDateSelect,
   onCreateEventClick,
@@ -54,12 +56,14 @@ export function CalendarSidebar({
           title="내 캘린더"
           calendars={MY_CALENDARS}
           visibleCalendarIds={visiblePersonIds}
+          disabled={calendarListDisabled}
           onToggleCalendar={onToggleCalendarVisibility}
         />
         <CalendarListSection
-          title="다른 캘린더"
+          title="팀원 캘린더"
           calendars={OTHER_CALENDARS}
           visibleCalendarIds={visiblePersonIds}
+          disabled={calendarListDisabled}
           onToggleCalendar={onToggleCalendarVisibility}
         />
       </div>

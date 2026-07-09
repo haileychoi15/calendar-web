@@ -7,6 +7,7 @@ import {
   CREATE_EVENT_DRAWER_MAIN_PUSH_PX,
   CreateEventDrawer,
 } from "@/components/calendar/create-event-drawer";
+import { HOLIDAY_CALENDAR_ID } from "@/lib/calendar-data";
 import { getPeople } from "@/lib/calendar-events";
 import type { AvailableTimeSlot } from "@/lib/available-times";
 import { getAvailableTimeSlotKey } from "@/lib/available-times";
@@ -15,6 +16,10 @@ import { addDays } from "date-fns";
 
 import { useCallback, useMemo, useState } from "react";
 
+function getDefaultSidebarVisibleIds() {
+  return [...getPeople().map((person) => person.id), HOLIDAY_CALENDAR_ID];
+}
+
 export function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [weekStart, setWeekStart] = useState(() => getWeekStart(new Date()));
@@ -22,9 +27,15 @@ export function CalendarPage() {
     date: Date;
     nonce: number;
   } | null>(null);
-  const [visiblePersonIds, setVisiblePersonIds] = useState<string[]>(() =>
-    getPeople().map((person) => person.id)
+  const [sidebarVisibleIds, setSidebarVisibleIds] = useState<string[]>(
+    getDefaultSidebarVisibleIds
   );
+  const [frozenSidebarVisibleIds, setFrozenSidebarVisibleIds] = useState<
+    string[] | null
+  >(null);
+  const [drawerAttendeeCalendarIds, setDrawerAttendeeCalendarIds] = useState<
+    string[]
+  >([]);
   const [createEventOpen, setCreateEventOpen] = useState(false);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<
     AvailableTimeSlot[]
@@ -35,9 +46,26 @@ export function CalendarPage() {
   const [selectedAvailableSlotKey, setSelectedAvailableSlotKey] = useState<
     string | null
   >(null);
-  const visiblePersonIdSet = useMemo(
-    () => new Set(visiblePersonIds),
-    [visiblePersonIds]
+
+  const sidebarDisplayIdSet = useMemo(() => {
+    if (createEventOpen && frozenSidebarVisibleIds) {
+      return new Set(frozenSidebarVisibleIds);
+    }
+
+    return new Set(sidebarVisibleIds);
+  }, [createEventOpen, frozenSidebarVisibleIds, sidebarVisibleIds]);
+
+  const weekViewVisibleIdSet = useMemo(() => {
+    if (createEventOpen) {
+      return new Set(drawerAttendeeCalendarIds);
+    }
+
+    return new Set(sidebarVisibleIds);
+  }, [createEventOpen, drawerAttendeeCalendarIds, sidebarVisibleIds]);
+
+  const drawerAttendeeVisibleIdSet = useMemo(
+    () => new Set(drawerAttendeeCalendarIds),
+    [drawerAttendeeCalendarIds]
   );
 
   const goToToday = useCallback(() => {
@@ -61,7 +89,9 @@ export function CalendarPage() {
 
   const handleToggleCalendarVisibility = useCallback(
     (calendarId: string, visible: boolean) => {
-      setVisiblePersonIds((prev) => {
+      if (createEventOpen) return;
+
+      setSidebarVisibleIds((prev) => {
         if (visible) {
           return prev.includes(calendarId) ? prev : [...prev, calendarId];
         }
@@ -69,12 +99,22 @@ export function CalendarPage() {
         return prev.filter((id) => id !== calendarId);
       });
     },
-    []
+    [createEventOpen]
   );
 
-  const handleAttendeeCalendarIdsChange = useCallback(
-    (personIds: string[]) => {
-      setVisiblePersonIds(personIds);
+  const handleAttendeeCalendarIdsChange = useCallback((personIds: string[]) => {
+    setDrawerAttendeeCalendarIds(personIds);
+  }, []);
+
+  const handleToggleDrawerAttendeeCalendarVisibility = useCallback(
+    (personId: string, visible: boolean) => {
+      setDrawerAttendeeCalendarIds((prev) => {
+        if (visible) {
+          return prev.includes(personId) ? prev : [...prev, personId];
+        }
+
+        return prev.filter((id) => id !== personId);
+      });
     },
     []
   );
@@ -116,13 +156,30 @@ export function CalendarPage() {
     []
   );
 
-  const handleCreateEventOpenChange = useCallback((open: boolean) => {
-    setCreateEventOpen(open);
-    if (!open) {
+  const handleCreateEventOpenChange = useCallback(
+    (open: boolean) => {
+      if (open) {
+        setSidebarVisibleIds((current) => {
+          setFrozenSidebarVisibleIds([...current]);
+          return current;
+        });
+        setCreateEventOpen(true);
+        return;
+      }
+
+      setFrozenSidebarVisibleIds((snapshot) => {
+        if (snapshot) {
+          setSidebarVisibleIds(snapshot);
+        }
+        return null;
+      });
+      setDrawerAttendeeCalendarIds([]);
+      setCreateEventOpen(false);
       setHoveredAvailableSlotKey(null);
       setSelectedAvailableSlotKey(null);
-    }
-  }, []);
+    },
+    []
+  );
 
   return (
     <div className="flex h-svh overflow-hidden bg-background">
@@ -130,9 +187,10 @@ export function CalendarPage() {
         <CalendarSidebar
           currentDate={selectedDate}
           weekStart={weekStart}
-          visiblePersonIds={visiblePersonIdSet}
+          visiblePersonIds={sidebarDisplayIdSet}
+          calendarListDisabled={createEventOpen}
           onToggleCalendarVisibility={handleToggleCalendarVisibility}
-          onCreateEventClick={() => setCreateEventOpen(true)}
+          onCreateEventClick={() => handleCreateEventOpenChange(true)}
           onDateSelect={(date) => {
             setSelectedDate(date);
             setWeekStart(getWeekStart(date));
@@ -145,8 +203,10 @@ export function CalendarPage() {
         <CreateEventDrawer
           open={createEventOpen}
           onOpenChange={handleCreateEventOpenChange}
-          visiblePersonIds={visiblePersonIdSet}
-          onTogglePersonCalendarVisibility={handleToggleCalendarVisibility}
+          attendeeVisibleCalendarIds={drawerAttendeeVisibleIdSet}
+          onToggleAttendeeCalendarVisibility={
+            handleToggleDrawerAttendeeCalendarVisibility
+          }
           onAttendeeCalendarIdsChange={handleAttendeeCalendarIdsChange}
           onAvailableTimeSlotsChange={handleAvailableTimeSlotsChange}
           onHoveredAvailableSlotKeyChange={handleHoveredAvailableSlotKeyChange}
@@ -169,7 +229,7 @@ export function CalendarPage() {
         />
         <CalendarWeekView
           weekStart={weekStart}
-          visiblePersonIds={visiblePersonIdSet}
+          visiblePersonIds={weekViewVisibleIdSet}
           availableTimeSlots={availableTimeSlots}
           hoveredAvailableSlotKey={hoveredAvailableSlotKey}
           selectedAvailableSlotKey={selectedAvailableSlotKey}

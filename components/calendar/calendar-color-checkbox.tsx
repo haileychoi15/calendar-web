@@ -11,6 +11,7 @@ type CalendarColorCheckboxProps = {
   color?: CalendarColor;
   checkboxColor?: string;
   checked: boolean;
+  disabled?: boolean;
   onCheckedChange: (checked: boolean) => void;
 };
 
@@ -18,6 +19,7 @@ export function CalendarColorCheckbox({
   color = "blue",
   checkboxColor,
   checked,
+  disabled = false,
   onCheckedChange,
 }: CalendarColorCheckboxProps) {
   const sharedClassName = "size-[18px] rounded-[4px] border-input";
@@ -26,6 +28,7 @@ export function CalendarColorCheckbox({
     return (
       <Checkbox
         checked={checked}
+        disabled={disabled}
         onCheckedChange={onCheckedChange}
         className={cn(
           sharedClassName,
@@ -47,6 +50,7 @@ export function CalendarColorCheckbox({
   return (
     <Checkbox
       checked={checked}
+      disabled={disabled}
       onCheckedChange={onCheckedChange}
       className={cn(sharedClassName, colorClasses.checked)}
     />

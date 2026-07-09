@@ -114,8 +114,11 @@ type Attendee = {
 type CreateEventDrawerFormProps = {
   open: boolean;
   onClose: () => void;
-  visiblePersonIds: ReadonlySet<string>;
-  onTogglePersonCalendarVisibility: (personId: string, visible: boolean) => void;
+  attendeeVisibleCalendarIds: ReadonlySet<string>;
+  onToggleAttendeeCalendarVisibility: (
+    personId: string,
+    visible: boolean
+  ) => void;
   onAttendeeCalendarIdsChange: (personIds: string[]) => void;
   onAvailableTimeSlotsChange: (slots: AvailableTimeSlot[]) => void;
   onHoveredAvailableSlotKeyChange: (slotKey: string | null) => void;
@@ -163,8 +166,8 @@ function personToAttendee(person: Person): Attendee {
 export function CreateEventDrawerForm({
   open,
   onClose,
-  visiblePersonIds,
-  onTogglePersonCalendarVisibility,
+  attendeeVisibleCalendarIds,
+  onToggleAttendeeCalendarVisibility,
   onAttendeeCalendarIdsChange,
   onAvailableTimeSlotsChange,
   onHoveredAvailableSlotKeyChange,
@@ -413,9 +416,9 @@ export function CreateEventDrawerForm({
   };
 
   const toggleAttendeeCalendarVisibility = (attendeeId: string) => {
-    onTogglePersonCalendarVisibility(
+    onToggleAttendeeCalendarVisibility(
       attendeeId,
-      !visiblePersonIds.has(attendeeId)
+      !attendeeVisibleCalendarIds.has(attendeeId)
     );
   };
 
@@ -696,7 +699,7 @@ export function CreateEventDrawerForm({
                       {isCalendarPersonId(attendee.id) ? (
                         <IconButtonTooltip
                           label={
-                            visiblePersonIds.has(attendee.id)
+                            attendeeVisibleCalendarIds.has(attendee.id)
                               ? "일정 숨기기"
                               : "일정 보이기"
                           }
@@ -704,7 +707,7 @@ export function CreateEventDrawerForm({
                           <button
                             type="button"
                             aria-label={
-                              visiblePersonIds.has(attendee.id)
+                              attendeeVisibleCalendarIds.has(attendee.id)
                                 ? "일정 숨기기"
                                 : "일정 보이기"
                             }
@@ -714,7 +717,7 @@ export function CreateEventDrawerForm({
                             }}
                             className={ATTENDEE_ACTION_BUTTON_CLASS}
                           >
-                            {visiblePersonIds.has(attendee.id) ? (
+                            {attendeeVisibleCalendarIds.has(attendee.id) ? (
                               <Eye className="size-3.5" />
                             ) : (
                               <EyeOff className="size-3.5" />
@@ -969,7 +972,10 @@ export function CreateEventDrawerForm({
       </div>
 
       <div className="shrink-0 border-t border-border bg-background p-4">
-        <Button type="button" className="h-10 w-full rounded-lg">
+        <Button
+          type="button"
+          className="h-10 w-full rounded-lg hover:bg-[color-mix(in_oklch,var(--primary),var(--foreground)_10%)]"
+        >
           초대보내기
         </Button>
       </div>

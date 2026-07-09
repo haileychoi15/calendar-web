@@ -55,7 +55,7 @@ function MiniPersonAvatar({
     <PersonAvatar
       personId={personId}
       name={name}
-      className="size-4"
+      size="xs"
       showCalendarColor={false}
     />
   );
