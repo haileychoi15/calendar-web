@@ -19,7 +19,7 @@ function AvailableTimeSlotSkeleton({ className }: AvailableTimeSlotSkeletonProps
   return (
     <div
       className={cn(
-        "flex items-start gap-2 rounded-md border-2 border-dashed border-[var(--green400)] px-3 py-2.5",
+        "flex items-start gap-2 rounded-md px-3 py-2.5",
         className
       )}
     >

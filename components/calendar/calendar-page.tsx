@@ -169,7 +169,7 @@ export function CalendarPage() {
     setSelectedDate(input.date);
     setWeekStart(getWeekStart(input.date));
     setMiniClickHighlight(null);
-    toast.success("초대를 보냈어요.");
+    toast.success(`${input.personIds.length}명을 회의에 초대했어요.`);
   }, []);
 
   const handleCreateEventOpenChange = useCallback(

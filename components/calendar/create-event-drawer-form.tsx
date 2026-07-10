@@ -1017,7 +1017,7 @@ export function CreateEventDrawerForm({
             className="size-[18px] rounded-[4px]"
           />
           <span className="text-sm text-foreground">
-            참석자에게 초대 이메일 보내기
+            참석자에게 이메일 알림도 함께 보내기
           </span>
         </label>
         <Button
@@ -1025,7 +1025,7 @@ export function CreateEventDrawerForm({
           className="h-10 w-full rounded-lg hover:bg-[color-mix(in_oklch,var(--primary),var(--foreground)_10%)]"
           onClick={handleSendInvite}
         >
-          일정 등록하기
+          회의 만들기
         </Button>
       </div>
     </div>
