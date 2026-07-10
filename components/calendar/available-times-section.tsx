@@ -19,17 +19,14 @@ function AvailableTimeSlotSkeleton({ className }: AvailableTimeSlotSkeletonProps
   return (
     <div
       className={cn(
-        "flex overflow-hidden rounded-md border border-border",
+        "flex items-start gap-2 rounded-md border-2 border-dashed border-[var(--green400)] px-3 py-2.5",
         className
       )}
     >
-      <Skeleton className="w-1 shrink-0 rounded-none" />
-      <div className="flex flex-1 items-start gap-2 px-3 py-2.5">
-        <Skeleton className="mt-0.5 size-[18px] shrink-0 rounded-full" />
-        <div className="min-w-0 flex-1 space-y-1.5">
-          <Skeleton className="h-4 w-4/5" />
-          <Skeleton className="h-3 w-3/5" />
-        </div>
+      <Skeleton className="mt-0.5 size-[18px] shrink-0 rounded-full" />
+      <div className="min-w-0 flex-1 space-y-1.5">
+        <Skeleton className="h-4 w-4/5" />
+        <Skeleton className="h-3 w-3/5" />
       </div>
     </div>
   );
@@ -71,66 +68,65 @@ function AvailableTimeSlotItem({
 }: AvailableTimeSlotItemProps) {
   const slotKey = getAvailableTimeSlotKey(slot);
   const isHovered = hoveredSlotKey === slotKey && !selected;
-  const accentClassName =
-    slot.kind === "all" ? "bg-[var(--green400)]" : "bg-[var(--yellow400)]";
+  const accentColor =
+    slot.kind === "all" ? "var(--green400)" : "var(--yellow400)";
   const unavailableCount = slot.unavailableOptionalAttendees.length;
 
   return (
     <label
       className={cn(
-        "flex cursor-pointer overflow-hidden rounded-md border transition-colors",
+        "flex cursor-pointer items-start gap-2 rounded-md border-2 px-3 py-2.5 transition-[border-color,border-style,background-color]",
         selected
-          ? "border-primary bg-muted/40 shadow-[inset_0_0_0_1px_var(--primary)]"
-          : isHovered
-            ? "border-border bg-muted/30"
-            : "border-border"
+          ? "border-solid border-primary bg-muted/40"
+          : cn("border-dashed", isHovered && "bg-muted")
       )}
+      style={selected ? undefined : { borderColor: accentColor }}
       onMouseEnter={onHover}
       onMouseLeave={onHoverEnd}
     >
-      <span className={cn("w-1 shrink-0", accentClassName)} aria-hidden />
-      <span className="flex flex-1 items-start gap-2 px-3 py-2.5">
-        <input
-          type="radio"
-          name="available-time-slot"
-          checked={selected}
-          onChange={onSelect}
-          className="pointer-events-none mt-0.5 size-[18px] shrink-0 accent-primary"
-        />
-        <span className="min-w-0 flex-1">
-          <span className="block text-sm text-foreground">
-            {formatAvailableTimeSlotLabel(slot.start, slot.end)}
-          </span>
-          {unavailableCount > 0 ? (
-            <span className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-              {unavailableCount === 1 ? (
-                <>
-                  <MiniPersonAvatar
-                    personId={slot.unavailableOptionalAttendees[0]!.id}
-                    name={slot.unavailableOptionalAttendees[0]!.name}
-                  />
-                  <span className="truncate">
-                    {slot.unavailableOptionalAttendees[0]!.name}님이 참석할 수
-                    없음
-                  </span>
-                </>
-              ) : (
-                <>
-                  <span className="flex items-center -space-x-1">
-                    {slot.unavailableOptionalAttendees.slice(0, 2).map((attendee) => (
-                      <MiniPersonAvatar
-                        key={attendee.id}
-                        personId={attendee.id}
-                        name={attendee.name}
-                      />
-                    ))}
-                  </span>
-                  <span>{unavailableCount}명이 참석할 수 없음</span>
-                </>
-              )}
-            </span>
-          ) : null}
+      <input
+        type="radio"
+        name="available-time-slot"
+        checked={selected}
+        onChange={onSelect}
+        className={cn(
+          "pointer-events-none mt-0.5 size-[18px] shrink-0 accent-primary",
+          !selected && "opacity-40"
+        )}
+      />
+      <span className="min-w-0 flex-1">
+        <span className="block text-sm text-foreground">
+          {formatAvailableTimeSlotLabel(slot.start, slot.end)}
         </span>
+        {unavailableCount > 0 ? (
+          <span className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
+            {unavailableCount === 1 ? (
+              <>
+                <MiniPersonAvatar
+                  personId={slot.unavailableOptionalAttendees[0]!.id}
+                  name={slot.unavailableOptionalAttendees[0]!.name}
+                />
+                <span className="truncate">
+                  {slot.unavailableOptionalAttendees[0]!.name}님이 참석할 수
+                  없음
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="flex items-center -space-x-1">
+                  {slot.unavailableOptionalAttendees.slice(0, 2).map((attendee) => (
+                    <MiniPersonAvatar
+                      key={attendee.id}
+                      personId={attendee.id}
+                      name={attendee.name}
+                    />
+                  ))}
+                </span>
+                <span>{unavailableCount}명이 참석할 수 없음</span>
+              </>
+            )}
+          </span>
+        ) : null}
       </span>
     </label>
   );

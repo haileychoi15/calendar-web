@@ -455,7 +455,7 @@ export function CreateEventDrawerForm({
     if (!value) return;
 
     const { hour, minute } = parseKstTimeValue(value);
-    const nextEnd = applyKstTime(endTime, hour, minute);
+    const nextEnd = applyKstTime(startTime, hour, minute);
 
     if (nextEnd.getTime() <= startTime.getTime()) return;
     setEndTime(nextEnd);
@@ -585,7 +585,7 @@ export function CreateEventDrawerForm({
                   <DropdownMenuOption
                     key={option.value}
                     selected={eventType === option.value}
-                    disabled={option.value !== "meeting"}
+                    disabled={!option.supported}
                     onClick={() => setEventType(option.value)}
                   >
                     {option.label}
@@ -877,7 +877,11 @@ export function CreateEventDrawerForm({
                       </span>
                     </SelectValue>
                   </SelectTrigger>
-                  <SelectContent className="max-h-56">
+                  <SelectContent
+                    align="start"
+                    alignItemWithTrigger={false}
+                    className="max-h-56"
+                  >
                     {TIME_OPTIONS.map((option) => (
                       <SelectItem key={option.value} value={option.value}>
                         {option.label}
@@ -909,7 +913,11 @@ export function CreateEventDrawerForm({
                       ) : null}
                     </SelectValue>
                   </SelectTrigger>
-                  <SelectContent className="max-h-56">
+                  <SelectContent
+                    align="start"
+                    alignItemWithTrigger={false}
+                    className="max-h-56"
+                  >
                     {TIME_OPTIONS.filter((option) => {
                       const { hour, minute } = option;
                       const candidate = applyKstTime(startTime, hour, minute);
@@ -1003,6 +1011,7 @@ export function CreateEventDrawerForm({
           <Checkbox
             checked={sendInviteEmail}
             onCheckedChange={setSendInviteEmail}
+            className="size-[18px] rounded-[4px]"
           />
           <span className="text-sm text-foreground">
             참석자에게 초대 이메일 보내기
@@ -1013,7 +1022,7 @@ export function CreateEventDrawerForm({
           className="h-10 w-full rounded-lg hover:bg-[color-mix(in_oklch,var(--primary),var(--foreground)_10%)]"
           onClick={handleSendInvite}
         >
-          초대보내기
+          일정 등록하기
         </Button>
       </div>
     </div>

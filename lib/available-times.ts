@@ -228,6 +228,16 @@ function excludeExistingSlots(
   return slots.filter((slot) => !excludedKeys.has(slotKey(slot)));
 }
 
+function compareRequiredOnlySlots(a: AvailableTimeSlot, b: AvailableTimeSlot) {
+  const unavailableDiff =
+    a.unavailableOptionalAttendees.length -
+    b.unavailableOptionalAttendees.length;
+
+  if (unavailableDiff !== 0) return unavailableDiff;
+
+  return a.start.getTime() - b.start.getTime();
+}
+
 export function formatAvailableTimeSlotLabel(start: Date, end: Date) {
   const dateLabel = format(start, "M월 d일 (EEE)", { locale: ko });
   const startParts = getKstParts(start);
@@ -337,6 +347,8 @@ export function findAvailableTimes(
       )
     );
   }
+
+  requiredOnlySlots.sort(compareRequiredOnlySlots);
 
   const allCount = allAvailableSlots.length;
   let displayAll = allAvailableSlots;

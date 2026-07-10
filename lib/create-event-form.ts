@@ -4,10 +4,10 @@ import { ko } from "date-fns/locale";
 import { getKstParts } from "@/lib/calendar-week";
 
 export const EVENT_TYPE_OPTIONS = [
-  { value: "meeting", label: "회의" },
-  { value: "외근", label: "외근" },
-  { value: "휴가", label: "휴가" },
-  { value: "기타", label: "기타" },
+  { value: "meeting", label: "회의", supported: true },
+  { value: "event", label: "이벤트", supported: false },
+  { value: "out-of-office", label: "부재 중", supported: false },
+  { value: "focus-time", label: "개인 집중 시간", supported: false },
 ] as const;
 
 export type EventTypeOption = (typeof EVENT_TYPE_OPTIONS)[number]["value"];
