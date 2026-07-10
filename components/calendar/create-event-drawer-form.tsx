@@ -90,7 +90,7 @@ import {
   parseKstTimeValue,
   snapToMeetingDurationMinutes,
   TIME_OPTIONS,
-  type EventTypeOption,
+  type SupportedEventTypeOption,
 } from "@/lib/create-event-form";
 import {
   findAvailableTimes,
@@ -184,7 +184,7 @@ export function CreateEventDrawerForm({
   const attendeeBlurTimeoutRef = useRef<number | null>(null);
   const locationBlurTimeoutRef = useRef<number | null>(null);
 
-  const [eventType, setEventType] = useState<EventTypeOption>("meeting");
+  const [eventType, setEventType] = useState<SupportedEventTypeOption>("meeting");
   const [title, setTitle] = useState("");
   const [attendeeQuery, setAttendeeQuery] = useState("");
   const [isAttendeeSearchFocused, setIsAttendeeSearchFocused] = useState(false);
@@ -586,7 +586,10 @@ export function CreateEventDrawerForm({
                     key={option.value}
                     selected={eventType === option.value}
                     disabled={!option.supported}
-                    onClick={() => setEventType(option.value)}
+                    onClick={() => {
+                      if (!option.supported) return;
+                      setEventType(option.value);
+                    }}
                   >
                     {option.label}
                   </DropdownMenuOption>

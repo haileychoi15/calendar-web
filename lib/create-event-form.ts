@@ -12,6 +12,12 @@ export const EVENT_TYPE_OPTIONS = [
 
 export type EventTypeOption = (typeof EVENT_TYPE_OPTIONS)[number]["value"];
 
+/** Only options that can be created; must stay assignable to EventType. */
+export type SupportedEventTypeOption = Extract<
+  (typeof EVENT_TYPE_OPTIONS)[number],
+  { supported: true }
+>["value"];
+
 export const MEETING_DURATION_OPTIONS = [
   { minutes: 30, label: "30분" },
   { minutes: 60, label: "1시간" },
@@ -149,8 +155,17 @@ export function getDefaultEventTimes() {
   let targetHour = parts.hour;
   if (targetHour < 12) {
     targetHour = 12;
-  } else if (parts.minute > 0 || parts.second > 0 || parts.millisecond > 0) {
-    targetHour += 1;
+  } else {
+    const hourStart = createKstDateTime(
+      parts.year,
+      parts.month,
+      parts.day,
+      parts.hour,
+      0
+    );
+    if (now.getTime() > hourStart.getTime()) {
+      targetHour += 1;
+    }
   }
 
   let year = parts.year;
