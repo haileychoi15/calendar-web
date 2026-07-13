@@ -208,7 +208,7 @@ export function CalendarPage() {
 
   return (
     <div className="flex h-svh overflow-hidden bg-background">
-      <div className="relative min-h-0 shrink-0">
+      <div className="relative h-svh min-h-0 shrink-0">
         <CalendarSidebar
           currentDate={selectedDate}
           weekStart={weekStart}

@@ -27,7 +27,7 @@ export function CalendarSidebar({
   onCreateEventClick,
 }: CalendarSidebarProps) {
   return (
-    <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-background">
+    <aside className="flex h-full w-60 shrink-0 flex-col border-r border-border bg-background">
       <div className="px-4 py-3">
         <h1 className="text-xl font-semibold leading-7 tracking-tight text-foreground">
           Calendar
