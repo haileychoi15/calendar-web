@@ -9,11 +9,10 @@ import {
   CREATE_EVENT_DRAWER_MAIN_PUSH_PX,
   CreateEventDrawer,
 } from "@/components/calendar/create-event-drawer";
-import { HOLIDAY_CALENDAR_ID } from "@/lib/calendar-data";
+import { MY_CALENDARS, OTHER_CALENDARS } from "@/lib/calendar-data";
 import {
   addMeetingEvents,
   type CreateMeetingEventInput,
-  getPeople,
 } from "@/lib/calendar-events";
 import type { AvailableTimeSlot } from "@/lib/available-times";
 import { getAvailableTimeSlotKey } from "@/lib/available-times";
@@ -22,8 +21,12 @@ import { addDays } from "date-fns";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+/** Only calendars listed in the sidebar (내 캘린더 + 팀원). */
 function getDefaultSidebarVisibleIds() {
-  return [...getPeople().map((person) => person.id), HOLIDAY_CALENDAR_ID];
+  return [
+    ...MY_CALENDARS.map((calendar) => calendar.id),
+    ...OTHER_CALENDARS.map((calendar) => calendar.id),
+  ];
 }
 
 const EVENT_HIGHLIGHT_START_DELAY_MS = 300;
