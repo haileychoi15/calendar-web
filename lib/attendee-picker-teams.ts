@@ -43,6 +43,12 @@ export const ATTENDEE_PICKER_TEAMS: readonly AttendeePickerTeam[] = [
   },
 ] as const;
 
+/** Non-team attendees who are recommended as optional participation. */
+export const OPTIONAL_PARTICIPATION_SUGGESTED_PERSON_IDS = new Set([
+  "marketer1",
+  "sales1",
+]);
+
 export type AttendeePickerTeamGroup = {
   id: string;
   label: string | null;

@@ -101,7 +101,7 @@ import {
   type AvailableTimeSlot,
   type AvailableTimesResult,
 } from "@/lib/available-times";
-import { getAttendeePickerTeamGroups } from "@/lib/attendee-picker-teams";
+import { getAttendeePickerTeamGroups, OPTIONAL_PARTICIPATION_SUGGESTED_PERSON_IDS } from "@/lib/attendee-picker-teams";
 import { cn } from "@/lib/utils";
 
 type AttendeeRequirement = "required" | "optional";
@@ -712,7 +712,13 @@ export function CreateEventDrawerForm({
                       </span>
                     ) : attendee.requirement === "optional" ? (
                       <span className="ml-1.5 text-xs text-muted-foreground">
-                        선택 참석
+                        선택 참여
+                      </span>
+                    ) : OPTIONAL_PARTICIPATION_SUGGESTED_PERSON_IDS.has(
+                        attendee.id
+                      ) ? (
+                      <span className="ml-1.5 text-xs text-muted-foreground">
+                        (선택 참여 권장)
                       </span>
                     ) : null}
                   </span>
@@ -721,7 +727,7 @@ export function CreateEventDrawerForm({
                       <IconButtonTooltip
                         label={
                           attendee.requirement === "required"
-                            ? "선택 참석으로 표시"
+                            ? "선택 참여로 표시"
                             : "필수로 표시"
                         }
                       >
@@ -729,7 +735,7 @@ export function CreateEventDrawerForm({
                           type="button"
                           aria-label={
                             attendee.requirement === "required"
-                              ? "선택 참석으로 표시"
+                              ? "선택 참여로 표시"
                               : "필수로 표시"
                           }
                           onClick={(event) => {
