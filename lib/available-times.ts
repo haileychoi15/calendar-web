@@ -28,9 +28,10 @@ export type AvailableTimeSlot = {
 };
 
 export type AvailableTimesResult = {
-  allAvailableSlots: AvailableTimeSlot[];
-  requiredOnlySlots: AvailableTimeSlot[];
-  showRequiredOnlySection: boolean;
+  /** Merged display candidates: filtered required-only + all-available, earliest first. */
+  slots: AvailableTimeSlot[];
+  /** KST date key (YYYY-MM-DD) of the earliest all-available slot, if any. */
+  earliestAllDateKey: string | null;
 };
 
 const SLOT_STEP_MINUTES = 30;
@@ -39,7 +40,7 @@ const BUSINESS_HOUR_START = 9;
 const BUSINESS_HOUR_END = 18;
 const LUNCH_BREAK_START_MINUTES = 12 * 60;
 const LUNCH_BREAK_END_MINUTES = 13 * 60;
-const MAX_DISPLAY_SLOTS = 4;
+export const AVAILABLE_TIMES_PAGE_SIZE = 3;
 const SEARCH_LOADING_DELAY_MS = 700;
 
 export { SEARCH_LOADING_DELAY_MS };
@@ -220,22 +221,67 @@ function slotKey(slot: Pick<AvailableTimeSlot, "start" | "end">) {
   return `${slot.start.getTime()}-${slot.end.getTime()}`;
 }
 
-function excludeExistingSlots(
-  slots: AvailableTimeSlot[],
-  excluded: AvailableTimeSlot[]
-) {
-  const excludedKeys = new Set(excluded.map(slotKey));
-  return slots.filter((slot) => !excludedKeys.has(slotKey(slot)));
+function compareSlotsByStart(a: AvailableTimeSlot, b: AvailableTimeSlot) {
+  return a.start.getTime() - b.start.getTime();
 }
 
-function compareRequiredOnlySlots(a: AvailableTimeSlot, b: AvailableTimeSlot) {
-  const unavailableDiff =
-    a.unavailableOptionalAttendees.length -
-    b.unavailableOptionalAttendees.length;
+function compareSlotsForDisplay(a: AvailableTimeSlot, b: AvailableTimeSlot) {
+  if (a.kind !== b.kind) {
+    return a.kind === "all" ? -1 : 1;
+  }
 
-  if (unavailableDiff !== 0) return unavailableDiff;
+  return compareSlotsByStart(a, b);
+}
 
-  return a.start.getTime() - b.start.getTime();
+function buildDisplaySlots(
+  allAvailable: AvailableTimeSlot[],
+  requiredOnly: AvailableTimeSlot[]
+) {
+  const earliestAllDateKey =
+    allAvailable.length > 0 ? toKstDateKey(allAvailable[0]!.start) : null;
+
+  const filteredRequiredOnly =
+    earliestAllDateKey === null
+      ? requiredOnly
+      : requiredOnly.filter(
+          (slot) => toKstDateKey(slot.start) < earliestAllDateKey
+        );
+
+  const slots = [...filteredRequiredOnly, ...allAvailable].sort(
+    compareSlotsForDisplay
+  );
+
+  return { slots, earliestAllDateKey };
+}
+
+/** Calendar-day gap from a required-only slot to the earliest all-available date. */
+export function getDaysEarlierThanAllAvailable(
+  slot: AvailableTimeSlot,
+  earliestAllDateKey: string | null
+) {
+  if (slot.kind !== "required-only" || !earliestAllDateKey) return null;
+
+  const slotDateKey = toKstDateKey(slot.start);
+  if (slotDateKey >= earliestAllDateKey) return null;
+
+  const earliest = createKstDateTime(
+    Number(earliestAllDateKey.slice(0, 4)),
+    Number(earliestAllDateKey.slice(5, 7)),
+    Number(earliestAllDateKey.slice(8, 10)),
+    0,
+    0
+  );
+  const slotDay = createKstDateTime(
+    Number(slotDateKey.slice(0, 4)),
+    Number(slotDateKey.slice(5, 7)),
+    Number(slotDateKey.slice(8, 10)),
+    0,
+    0
+  );
+
+  return Math.round(
+    (earliest.getTime() - slotDay.getTime()) / (1000 * 60 * 60 * 24)
+  );
 }
 
 export function formatAvailableTimeSlotLabel(start: Date, end: Date) {
@@ -348,34 +394,7 @@ export function findAvailableTimes(
     );
   }
 
-  requiredOnlySlots.sort(compareRequiredOnlySlots);
-
-  const allCount = allAvailableSlots.length;
-  let displayAll = allAvailableSlots;
-  let displayRequired = requiredOnlySlots;
-  let showRequiredOnlySection = false;
-
-  if (allCount === 0) {
-    showRequiredOnlySection = true;
-    displayRequired = requiredOnlySlots.slice(0, MAX_DISPLAY_SLOTS);
-  } else if (allCount === 1) {
-    showRequiredOnlySection = true;
-    displayAll = allAvailableSlots;
-    displayRequired = excludeExistingSlots(requiredOnlySlots, displayAll).slice(
-      0,
-      MAX_DISPLAY_SLOTS
-    );
-  } else {
-    displayAll = allAvailableSlots.slice(0, MAX_DISPLAY_SLOTS);
-    showRequiredOnlySection = false;
-    displayRequired = [];
-  }
-
-  return {
-    allAvailableSlots: displayAll,
-    requiredOnlySlots: displayRequired,
-    showRequiredOnlySection,
-  };
+  return buildDisplaySlots(allAvailableSlots, requiredOnlySlots);
 }
 
 export function getAvailableTimeSlotKey(slot: AvailableTimeSlot) {
@@ -387,7 +406,7 @@ export function getDisplayedAvailableTimeSlots(
 ) {
   if (!result) return [];
 
-  return [...result.allAvailableSlots, ...result.requiredOnlySlots];
+  return result.slots;
 }
 
 export function getAvailableTimeSlotLayout(start: Date, end: Date) {

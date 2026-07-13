@@ -8,7 +8,7 @@ import type { CreateMeetingEventInput } from "@/lib/calendar-events";
 import { cn } from "@/lib/utils";
 
 export const SIDEBAR_WIDTH_PX = 240;
-export const CREATE_EVENT_DRAWER_WIDTH_PX = 320;
+export const CREATE_EVENT_DRAWER_WIDTH_PX = 380;
 /** Extra layout width pushed into main when drawer opens (drawer - sidebar). */
 export const CREATE_EVENT_DRAWER_MAIN_PUSH_PX =
   CREATE_EVENT_DRAWER_WIDTH_PX - SIDEBAR_WIDTH_PX;
@@ -60,18 +60,20 @@ export function CreateEventDrawer({
     <div
       aria-hidden={!open}
       className={cn(
-        "absolute top-0 left-0 z-20 h-svh w-[320px] overflow-hidden",
+        "absolute top-0 left-0 z-20 h-svh overflow-hidden",
         !open && "pointer-events-none"
       )}
+      style={{ width: CREATE_EVENT_DRAWER_WIDTH_PX }}
     >
       <div
         role="dialog"
         aria-modal={open}
         aria-label="일정 만들기"
         className={cn(
-          "flex h-full w-[320px] flex-col border-r border-border bg-background shadow-md transition-transform duration-modal ease-out",
+          "flex h-full flex-col border-r border-border bg-background shadow-md transition-transform duration-modal ease-out",
           open ? "translate-x-0" : "-translate-x-full"
         )}
+        style={{ width: CREATE_EVENT_DRAWER_WIDTH_PX }}
       >
         <CreateEventDrawerForm
           open={open}

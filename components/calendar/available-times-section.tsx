@@ -1,11 +1,14 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { PersonAvatar } from "@/components/calendar/person-avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import {
+  AVAILABLE_TIMES_PAGE_SIZE,
   formatAvailableTimeSlotLabel,
   getAvailableTimeSlotKey,
+  getDaysEarlierThanAllAvailable,
   type AvailableTimeSlot,
   type AvailableTimesResult,
 } from "@/lib/available-times";
@@ -34,6 +37,7 @@ function AvailableTimeSlotSkeleton({ className }: AvailableTimeSlotSkeletonProps
 
 type AvailableTimeSlotItemProps = {
   slot: AvailableTimeSlot;
+  earliestAllDateKey: string | null;
   selected: boolean;
   hoveredSlotKey: string | null;
   onSelect: () => void;
@@ -60,6 +64,7 @@ function MiniPersonAvatar({
 
 function AvailableTimeSlotItem({
   slot,
+  earliestAllDateKey,
   selected,
   hoveredSlotKey,
   onSelect,
@@ -71,6 +76,7 @@ function AvailableTimeSlotItem({
   const accentColor =
     slot.kind === "all" ? "var(--green400)" : "var(--yellow400)";
   const unavailableCount = slot.unavailableOptionalAttendees.length;
+  const daysEarlier = getDaysEarlierThanAllAvailable(slot, earliestAllDateKey);
 
   return (
     <label
@@ -99,32 +105,39 @@ function AvailableTimeSlotItem({
           {formatAvailableTimeSlotLabel(slot.start, slot.end)}
         </span>
         {unavailableCount > 0 ? (
-          <span className="mt-1 flex items-center gap-1.5 text-xs text-muted-foreground">
-            {unavailableCount === 1 ? (
-              <>
-                <MiniPersonAvatar
-                  personId={slot.unavailableOptionalAttendees[0]!.id}
-                  name={slot.unavailableOptionalAttendees[0]!.name}
-                />
-                <span className="truncate">
-                  {slot.unavailableOptionalAttendees[0]!.name}님이 참석할 수
-                  없음
-                </span>
-              </>
-            ) : (
-              <>
-                <span className="flex items-center -space-x-1">
-                  {slot.unavailableOptionalAttendees.slice(0, 2).map((attendee) => (
-                    <MiniPersonAvatar
-                      key={attendee.id}
-                      personId={attendee.id}
-                      name={attendee.name}
-                    />
-                  ))}
-                </span>
-                <span>{unavailableCount}명이 참석할 수 없음</span>
-              </>
-            )}
+          <span className="mt-1 flex flex-col gap-0.5 text-xs text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              {unavailableCount === 1 ? (
+                <>
+                  <MiniPersonAvatar
+                    personId={slot.unavailableOptionalAttendees[0]!.id}
+                    name={slot.unavailableOptionalAttendees[0]!.name}
+                  />
+                  <span className="truncate">
+                    {slot.unavailableOptionalAttendees[0]!.name}님이 참석할 수
+                    없음
+                  </span>
+                </>
+              ) : (
+                <>
+                  <span className="flex items-center -space-x-1">
+                    {slot.unavailableOptionalAttendees
+                      .slice(0, 2)
+                      .map((attendee) => (
+                        <MiniPersonAvatar
+                          key={attendee.id}
+                          personId={attendee.id}
+                          name={attendee.name}
+                        />
+                      ))}
+                  </span>
+                  <span>{unavailableCount}명이 참석할 수 없음</span>
+                </>
+              )}
+            </span>
+            {daysEarlier !== null && daysEarlier > 0 ? (
+              <span>모두가 가능한 날짜보다 {daysEarlier}일 빠름</span>
+            ) : null}
           </span>
         ) : null}
       </span>
@@ -141,6 +154,7 @@ type AvailableTimesSectionProps = {
   hoveredSlotKey: string | null;
   onSelectSlot: (slot: AvailableTimeSlot) => void;
   onHoverSlot: (slotKey: string | null) => void;
+  onVisibleSlotsChange?: (slots: AvailableTimeSlot[]) => void;
 };
 
 export function AvailableTimesSection({
@@ -152,7 +166,31 @@ export function AvailableTimesSection({
   hoveredSlotKey,
   onSelectSlot,
   onHoverSlot,
+  onVisibleSlotsChange,
 }: AvailableTimesSectionProps) {
+  const [visibleCount, setVisibleCount] = useState(AVAILABLE_TIMES_PAGE_SIZE);
+
+  useEffect(() => {
+    setVisibleCount(AVAILABLE_TIMES_PAGE_SIZE);
+  }, [result]);
+
+  const slots = result?.slots ?? [];
+  const visibleSlots = slots.slice(0, visibleCount);
+  const hasMore = visibleCount < slots.length;
+  const visibleAllSlots = visibleSlots.filter((slot) => slot.kind === "all");
+  const visibleRequiredOnlySlots = visibleSlots.filter(
+    (slot) => slot.kind === "required-only"
+  );
+
+  useEffect(() => {
+    if (!result) {
+      onVisibleSlotsChange?.([]);
+      return;
+    }
+
+    onVisibleSlotsChange?.(result.slots.slice(0, visibleCount));
+  }, [result, visibleCount, onVisibleSlotsChange]);
+
   return (
     <div className="space-y-3">
       <div className="flex h-8 items-center justify-between">
@@ -178,22 +216,23 @@ export function AvailableTimesSection({
       {open ? (
         loading ? (
           <div className="space-y-2">
-            {Array.from({ length: 4 }).map((_, index) => (
+            {Array.from({ length: AVAILABLE_TIMES_PAGE_SIZE }).map((_, index) => (
               <AvailableTimeSlotSkeleton key={index} />
             ))}
           </div>
-        ) : result ? (
+        ) : result && visibleSlots.length > 0 ? (
           <div className="space-y-4">
-            {result.allAvailableSlots.length > 0 ? (
+            {visibleAllSlots.length > 0 ? (
               <div className="space-y-2">
                 <p className="text-sm font-medium text-foreground">
                   모두 참석 가능한 시간대
                 </p>
                 <div className="space-y-2">
-                  {result.allAvailableSlots.map((slot) => (
+                  {visibleAllSlots.map((slot) => (
                     <AvailableTimeSlotItem
                       key={getAvailableTimeSlotKey(slot)}
                       slot={slot}
+                      earliestAllDateKey={result.earliestAllDateKey}
                       selected={
                         selectedSlotKey === getAvailableTimeSlotKey(slot)
                       }
@@ -209,17 +248,17 @@ export function AvailableTimesSection({
               </div>
             ) : null}
 
-            {result.showRequiredOnlySection &&
-            result.requiredOnlySlots.length > 0 ? (
+            {visibleRequiredOnlySlots.length > 0 ? (
               <div className="space-y-2">
                 <p className="text-sm font-medium text-foreground">
-                  필수 참석자가 가능한 시간대
+                  필수 참석자만 가능한 시간대
                 </p>
                 <div className="space-y-2">
-                  {result.requiredOnlySlots.map((slot) => (
+                  {visibleRequiredOnlySlots.map((slot) => (
                     <AvailableTimeSlotItem
                       key={getAvailableTimeSlotKey(slot)}
                       slot={slot}
+                      earliestAllDateKey={result.earliestAllDateKey}
                       selected={
                         selectedSlotKey === getAvailableTimeSlotKey(slot)
                       }
@@ -233,6 +272,18 @@ export function AvailableTimesSection({
                   ))}
                 </div>
               </div>
+            ) : null}
+
+            {hasMore ? (
+              <button
+                type="button"
+                className="flex h-8 w-full items-center justify-center rounded-md text-sm font-medium text-primary transition-colors hover:bg-primary/10"
+                onClick={() =>
+                  setVisibleCount((count) => count + AVAILABLE_TIMES_PAGE_SIZE)
+                }
+              >
+                더보기
+              </button>
             ) : null}
           </div>
         ) : null

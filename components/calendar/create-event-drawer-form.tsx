@@ -14,7 +14,7 @@ import {
   Video,
   X,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ko as dayPickerKo } from "react-day-picker/locale";
 
 import { AvailableTimesSection } from "@/components/calendar/available-times-section";
@@ -242,7 +242,10 @@ export function CreateEventDrawerForm({
   );
 
   const showAttendeePicker =
-    isAttendeeSearchFocused && attendeePickerTeams.length > 0;
+    isAttendeeSearchFocused &&
+    attendeePickerTeams.some((team) =>
+      team.people.some((person) => !person.disabled)
+    );
 
   const hasOnlyOrganizerAttendee =
     attendees.length === 1 && attendees[0]?.isOrganizer === true;
@@ -289,12 +292,7 @@ export function CreateEventDrawerForm({
       !availableTimesResult
     ) {
       onAvailableTimeSlotsChange([]);
-      return;
     }
-
-    onAvailableTimeSlotsChange(
-      getDisplayedAvailableTimeSlots(availableTimesResult)
-    );
   }, [
     open,
     availableTimesEverOpened,
@@ -302,6 +300,28 @@ export function CreateEventDrawerForm({
     availableTimesResult,
     onAvailableTimeSlotsChange,
   ]);
+
+  const handleVisibleAvailableSlotsChange = useCallback(
+    (slots: AvailableTimeSlot[]) => {
+      if (
+        !open ||
+        !availableTimesEverOpened ||
+        availableTimesLoading ||
+        !availableTimesResult
+      ) {
+        return;
+      }
+
+      onAvailableTimeSlotsChange(slots);
+    },
+    [
+      open,
+      availableTimesEverOpened,
+      availableTimesLoading,
+      availableTimesResult,
+      onAvailableTimeSlotsChange,
+    ]
+  );
 
   useEffect(() => {
     if (!availableTimesOpen) return;
@@ -755,10 +775,10 @@ export function CreateEventDrawerForm({
                           </button>
                         </IconButtonTooltip>
                       ) : null}
-                      <IconButtonTooltip label="참석자 제외">
+                      <IconButtonTooltip label="삭제">
                         <button
                           type="button"
-                          aria-label="참석자 제외"
+                          aria-label="삭제"
                           onClick={(event) => {
                             removeAttendee(attendee.id);
                             event.currentTarget.blur();
@@ -831,6 +851,7 @@ export function CreateEventDrawerForm({
                 hoveredSlotKey={hoveredAvailableSlotKey}
                 onSelectSlot={handleSelectAvailableSlot}
                 onHoverSlot={onHoveredAvailableSlotKeyChange}
+                onVisibleSlotsChange={handleVisibleAvailableSlotsChange}
               />
             </CreateEventFieldRow>
           </CreateEventSection>
