@@ -43,6 +43,7 @@ type CalendarWeekViewProps = {
   weekStart: Date;
   eventsRevision: number;
   highlight: { date: Date; nonce: number } | null;
+  highlightedEventIds?: ReadonlySet<string>;
   visiblePersonIds: ReadonlySet<string>;
   availableTimeSlots?: AvailableTimeSlot[];
   hoveredAvailableSlotKey?: string | null;
@@ -145,6 +146,7 @@ export function CalendarWeekView({
   weekStart,
   eventsRevision,
   highlight,
+  highlightedEventIds,
   visiblePersonIds,
   availableTimeSlots = [],
   hoveredAvailableSlotKey = null,
@@ -314,6 +316,7 @@ export function CalendarWeekView({
                       event={event}
                       layout={timedLayouts.get(event.id)}
                       viewerPersonId={personId}
+                      highlighted={highlightedEventIds?.has(event.id) ?? false}
                     />
                   ))}
                   {availableTimeSlots

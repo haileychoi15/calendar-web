@@ -225,9 +225,23 @@ function compareSlotsByStart(a: AvailableTimeSlot, b: AvailableTimeSlot) {
   return a.start.getTime() - b.start.getTime();
 }
 
+function compareRequiredOnlySlots(a: AvailableTimeSlot, b: AvailableTimeSlot) {
+  const unavailableDiff =
+    a.unavailableOptionalAttendees.length -
+    b.unavailableOptionalAttendees.length;
+
+  if (unavailableDiff !== 0) return unavailableDiff;
+
+  return compareSlotsByStart(a, b);
+}
+
 function compareSlotsForDisplay(a: AvailableTimeSlot, b: AvailableTimeSlot) {
   if (a.kind !== b.kind) {
     return a.kind === "all" ? -1 : 1;
+  }
+
+  if (a.kind === "required-only") {
+    return compareRequiredOnlySlots(a, b);
   }
 
   return compareSlotsByStart(a, b);

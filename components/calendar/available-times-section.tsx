@@ -175,8 +175,10 @@ export function AvailableTimesSection({
   }, [result]);
 
   const slots = result?.slots ?? [];
+  const maxVisibleCount = AVAILABLE_TIMES_PAGE_SIZE * 2;
   const visibleSlots = slots.slice(0, visibleCount);
-  const hasMore = visibleCount < slots.length;
+  const showMoreButton =
+    visibleCount < maxVisibleCount && visibleCount < slots.length;
   const visibleAllSlots = visibleSlots.filter((slot) => slot.kind === "all");
   const visibleRequiredOnlySlots = visibleSlots.filter(
     (slot) => slot.kind === "required-only"
@@ -274,12 +276,14 @@ export function AvailableTimesSection({
               </div>
             ) : null}
 
-            {hasMore ? (
+            {showMoreButton ? (
               <button
                 type="button"
                 className="flex h-8 w-full items-center justify-center rounded-md text-sm font-medium text-primary transition-colors hover:bg-primary/10"
                 onClick={() =>
-                  setVisibleCount((count) => count + AVAILABLE_TIMES_PAGE_SIZE)
+                  setVisibleCount((count) =>
+                    Math.min(count + AVAILABLE_TIMES_PAGE_SIZE, maxVisibleCount)
+                  )
                 }
               >
                 더보기

@@ -223,6 +223,26 @@
   }
 }
 
+/* Newly created event pulse: primary ring expands then fades (1.5s, once) */
+@keyframes eventPulse {
+  0% {
+    box-shadow: 0 0 0 0px
+      color-mix(in srgb, var(--primary) 8%, transparent);
+  }
+  40% {
+    box-shadow: 0 0 0 4px
+      color-mix(in srgb, var(--primary) 6%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 0px transparent;
+  }
+}
+
+.event-highlight {
+  animation: eventPulse 1.5s ease-out 1;
+  z-index: 50;
+}
+
 /* Available slot → event time fields: 1s hold → fade out */
 @keyframes eventTimeFieldFlash {
   0%,

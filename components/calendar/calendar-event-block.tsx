@@ -16,6 +16,7 @@ type CalendarEventBlockProps = {
   event: CalendarEvent;
   layout?: TimedEventLayout;
   viewerPersonId?: string;
+  highlighted?: boolean;
 };
 
 function EventTitleRow({
@@ -57,6 +58,7 @@ export function CalendarEventBlock({
   event,
   layout,
   viewerPersonId = DEFAULT_PERSON_ID,
+  highlighted = false,
 }: CalendarEventBlockProps) {
   const baseLayout = layout ?? {
     ...getEventLayout(event),
@@ -73,14 +75,15 @@ export function CalendarEventBlock({
     <div
       className={cn(
         "pointer-events-auto absolute",
-        eventBlockSurfaceClassName
+        eventBlockSurfaceClassName,
+        highlighted && "event-highlight"
       )}
       style={{
         top,
         height,
         left: `${leftPercent}%`,
         right: rightInsetPx,
-        zIndex,
+        zIndex: highlighted ? Math.max(zIndex, 50) : zIndex,
         backgroundColor: appearance.backgroundColor,
         color: appearance.color,
       }}

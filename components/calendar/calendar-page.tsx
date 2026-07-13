@@ -20,11 +20,14 @@ import { getAvailableTimeSlotKey } from "@/lib/available-times";
 import { getWeekStart, isDateInWeek } from "@/lib/calendar-week";
 import { addDays } from "date-fns";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 function getDefaultSidebarVisibleIds() {
   return [...getPeople().map((person) => person.id), HOLIDAY_CALENDAR_ID];
 }
+
+const EVENT_HIGHLIGHT_START_DELAY_MS = 300;
+const EVENT_HIGHLIGHT_DURATION_MS = 1500;
 
 export function CalendarPage() {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
@@ -43,6 +46,10 @@ export function CalendarPage() {
     string[]
   >([]);
   const [eventsRevision, setEventsRevision] = useState(0);
+  const [highlightedEventIds, setHighlightedEventIds] = useState<
+    ReadonlySet<string>
+  >(() => new Set());
+  const highlightTimeoutsRef = useRef<number[]>([]);
   const [createEventOpen, setCreateEventOpen] = useState(false);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<
     AvailableTimeSlot[]
@@ -154,6 +161,19 @@ export function CalendarPage() {
     [availableTimeSlots, weekStart]
   );
 
+  const clearHighlightTimeouts = useCallback(() => {
+    for (const timeoutId of highlightTimeoutsRef.current) {
+      window.clearTimeout(timeoutId);
+    }
+    highlightTimeoutsRef.current = [];
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      clearHighlightTimeouts();
+    };
+  }, [clearHighlightTimeouts]);
+
   const handleSelectAvailableSlot = useCallback(
     (slot: AvailableTimeSlot | null) => {
       setSelectedAvailableSlotKey(
@@ -169,17 +189,39 @@ export function CalendarPage() {
     []
   );
 
-  const handleSendInvite = useCallback((input: CreateMeetingEventInput) => {
-    addMeetingEvents(input);
-    setEventsRevision((revision) => revision + 1);
-    setAvailableTimeSlots([]);
-    setHoveredAvailableSlotKey(null);
-    setSelectedAvailableSlotKey(null);
-    setSelectedDate(input.start);
-    setWeekStart(getWeekStart(input.start));
-    setMiniClickHighlight(null);
-    toast.success(`${input.personIds.length}명을 회의에 초대했어요.`);
-  }, []);
+  const handleSendInvite = useCallback(
+    (input: CreateMeetingEventInput) => {
+      const createdEvents = addMeetingEvents(input);
+      setEventsRevision((revision) => revision + 1);
+      setAvailableTimeSlots([]);
+      setHoveredAvailableSlotKey(null);
+      setSelectedAvailableSlotKey(null);
+      setSelectedDate(input.start);
+      setMiniClickHighlight(null);
+
+      setWeekStart((current) => {
+        if (isDateInWeek(input.start, current)) return current;
+        return getWeekStart(input.start);
+      });
+
+      toast.success(`${input.personIds.length}명을 회의에 초대했어요.`);
+
+      clearHighlightTimeouts();
+      setHighlightedEventIds(new Set());
+
+      const startTimeoutId = window.setTimeout(() => {
+        setHighlightedEventIds(new Set(createdEvents.map((event) => event.id)));
+
+        const endTimeoutId = window.setTimeout(() => {
+          setHighlightedEventIds(new Set());
+        }, EVENT_HIGHLIGHT_DURATION_MS);
+        highlightTimeoutsRef.current.push(endTimeoutId);
+      }, EVENT_HIGHLIGHT_START_DELAY_MS);
+
+      highlightTimeoutsRef.current.push(startTimeoutId);
+    },
+    [clearHighlightTimeouts]
+  );
 
   const handleCreateEventOpenChange = useCallback(
     (open: boolean) => {
@@ -256,6 +298,7 @@ export function CalendarPage() {
         <CalendarWeekView
           weekStart={weekStart}
           eventsRevision={eventsRevision}
+          highlightedEventIds={highlightedEventIds}
           visiblePersonIds={weekViewVisibleIdSet}
           availableTimeSlots={availableTimeSlots}
           hoveredAvailableSlotKey={hoveredAvailableSlotKey}
