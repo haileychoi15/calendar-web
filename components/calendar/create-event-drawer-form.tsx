@@ -570,7 +570,7 @@ export function CreateEventDrawerForm({
 
     onSendInvite({
       title: title.trim() || "회의 (제목 없음)",
-      date: eventDate,
+      date: startTime,
       start: startTime,
       end: endTime,
       type: eventType,

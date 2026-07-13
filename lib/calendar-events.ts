@@ -169,7 +169,7 @@ function getAllCalendarEvents() {
 }
 
 export function addMeetingEvents(input: CreateMeetingEventInput) {
-  const dateKey = toKstDateKey(input.date);
+  const dateKey = toKstDateKey(input.start);
   const createdEvents = input.personIds.map((personId) => {
     runtimeEventIdCounter += 1;
 

@@ -159,6 +159,12 @@ export function CalendarPage() {
       setSelectedAvailableSlotKey(
         slot ? getAvailableTimeSlotKey(slot) : null
       );
+
+      if (!slot) return;
+
+      setSelectedDate(slot.start);
+      setWeekStart(getWeekStart(slot.start));
+      setMiniClickHighlight(null);
     },
     []
   );
@@ -166,8 +172,11 @@ export function CalendarPage() {
   const handleSendInvite = useCallback((input: CreateMeetingEventInput) => {
     addMeetingEvents(input);
     setEventsRevision((revision) => revision + 1);
-    setSelectedDate(input.date);
-    setWeekStart(getWeekStart(input.date));
+    setAvailableTimeSlots([]);
+    setHoveredAvailableSlotKey(null);
+    setSelectedAvailableSlotKey(null);
+    setSelectedDate(input.start);
+    setWeekStart(getWeekStart(input.start));
     setMiniClickHighlight(null);
     toast.success(`${input.personIds.length}명을 회의에 초대했어요.`);
   }, []);

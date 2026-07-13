@@ -41,7 +41,7 @@ export function AttendeePickerDropdown({
             >
               {team.label ? (
                 <div className="mb-1 flex items-center justify-between gap-2 px-1.5">
-                  <p className="text-sm font-medium text-muted-foreground">
+                  <p className="text-xs font-medium text-muted-foreground">
                     {team.label}
                   </p>
                   {selectablePeople.length > 0 ? (
