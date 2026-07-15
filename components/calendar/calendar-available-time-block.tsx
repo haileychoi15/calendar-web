@@ -7,8 +7,9 @@ import {
 } from "@/lib/available-times";
 import { cn } from "@/lib/utils";
 
+/** White 1px ring outside the accent border, then soft drop shadow. */
 const AVAILABLE_TIME_BLOCK_SHADOW =
-  "0 2px 8px 0 color-mix(in srgb, var(--grey900) 10%, transparent)";
+  "0 0 0 1px #fff, 0 2px 8px 0 color-mix(in srgb, var(--grey900) 10%, transparent)";
 
 type CalendarAvailableTimeBlockProps = {
   slot: AvailableTimeSlot;
@@ -41,7 +42,6 @@ export function CalendarAvailableTimeBlock({
       style={{
         top,
         height,
-        boxShadow: AVAILABLE_TIME_BLOCK_SHADOW,
       }}
     >
       <button
@@ -70,7 +70,10 @@ export function CalendarAvailableTimeBlock({
             "pointer-events-none absolute inset-0 rounded-md border-2 transition-[border-color,border-style] duration-modal ease-out",
             selected ? "border-solid" : "border-dashed"
           )}
-          style={{ borderColor: accentColor }}
+          style={{
+            borderColor: accentColor,
+            boxShadow: AVAILABLE_TIME_BLOCK_SHADOW,
+          }}
         />
         <span
           className={cn(
