@@ -162,7 +162,9 @@ function personToAttendee(person: Person): Attendee {
   return {
     id: person.id,
     name: person.name,
-    requirement: "required",
+    requirement: OPTIONAL_PARTICIPATION_SUGGESTED_PERSON_IDS.has(person.id)
+      ? "optional"
+      : "required",
   };
 }
 

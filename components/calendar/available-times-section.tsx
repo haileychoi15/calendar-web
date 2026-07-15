@@ -161,7 +161,7 @@ function AvailableTimeSlotItem({
               )}
             </span>
             {daysEarlier !== null && daysEarlier > 0 ? (
-              <span>모두가 가능한 날짜보다 {daysEarlier}일 빠름</span>
+              <span>모두 참석 가능한 날짜보다 {daysEarlier}일 빠름</span>
             ) : null}
           </span>
         ) : null}
