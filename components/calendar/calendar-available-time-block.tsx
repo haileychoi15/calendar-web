@@ -67,8 +67,8 @@ export function CalendarAvailableTimeBlock({
         <span
           aria-hidden
           className={cn(
-            "pointer-events-none absolute inset-0 rounded-md border-2 transition-[border-color] duration-modal ease-out",
-            active ? "border-solid" : "border-dashed"
+            "pointer-events-none absolute inset-0 rounded-md border-2 transition-[border-color,border-style] duration-modal ease-out",
+            selected ? "border-solid" : "border-dashed"
           )}
           style={{ borderColor: accentColor }}
         />
