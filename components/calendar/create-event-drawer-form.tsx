@@ -34,6 +34,11 @@ import {
 import { AttendeePickerDropdown } from "@/components/calendar/attendee-picker-dropdown";
 import { PersonAvatar } from "@/components/calendar/person-avatar";
 import { IconButtonTooltip } from "@/components/ui/icon-button-tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { DropdownListPanel, DropdownMenuOption, DropdownOption } from "@/components/ui/dropdown-list";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -133,6 +138,9 @@ type CreateEventDrawerFormProps = {
 const ATTENDEE_ACTION_BUTTON_CLASS =
   "inline-flex size-6 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-muted";
 
+const SCENARIO_HINT_PREFERRED_PERSON_ID = "marketer1";
+const SCENARIO_HINT_LABEL = "참석자를 선택 참여로 변경해보세요.";
+
 function isCalendarPersonId(personId: string) {
   return getPersonById(personId) !== undefined;
 }
@@ -141,6 +149,23 @@ function getAttendeeCalendarPersonIds(attendees: Attendee[]) {
   return attendees
     .map((attendee) => attendee.id)
     .filter((personId) => isCalendarPersonId(personId));
+}
+
+/** Prefer 강유진 when both suggested attendees are still required. */
+function getScenarioHintPersonId(attendees: Attendee[]) {
+  const candidates = attendees.filter(
+    (attendee) =>
+      OPTIONAL_PARTICIPATION_SUGGESTED_PERSON_IDS.has(attendee.id) &&
+      attendee.requirement !== "optional"
+  );
+
+  if (candidates.length === 0) return null;
+
+  return (
+    candidates.find(
+      (attendee) => attendee.id === SCENARIO_HINT_PREFERRED_PERSON_ID
+    )?.id ?? candidates[0]!.id
+  );
 }
 
 function buildInitialAttendees(): Attendee[] {
@@ -162,9 +187,7 @@ function personToAttendee(person: Person): Attendee {
   return {
     id: person.id,
     name: person.name,
-    requirement: OPTIONAL_PARTICIPATION_SUGGESTED_PERSON_IDS.has(person.id)
-      ? "optional"
-      : "required",
+    requirement: "required",
   };
 }
 
@@ -208,6 +231,9 @@ export function CreateEventDrawerForm({
   const [availableTimesResult, setAvailableTimesResult] =
     useState<AvailableTimesResult | null>(null);
   const availableTimesRequestRef = useRef(0);
+  const [scenarioHintPersonId, setScenarioHintPersonId] = useState<
+    string | null
+  >(null);
   const [eventTimeFlashKey, setEventTimeFlashKey] = useState(0);
   const [meetingDurationMinutes, setMeetingDurationMinutes] = useState(
     DEFAULT_MEETING_DURATION_MINUTES
@@ -227,6 +253,59 @@ export function CreateEventDrawerForm({
 
     return () => cancelAnimationFrame(frameId);
   }, [open]);
+
+  const clearScenarioHint = useCallback(() => {
+    setScenarioHintPersonId(null);
+  }, []);
+
+  useEffect(() => {
+    if (!scenarioHintPersonId) return;
+
+    const hinted = attendees.find(
+      (attendee) => attendee.id === scenarioHintPersonId
+    );
+    if (!hinted || hinted.requirement === "optional") {
+      clearScenarioHint();
+    }
+  }, [attendees, scenarioHintPersonId, clearScenarioHint]);
+
+  useEffect(() => {
+    if (!scenarioHintPersonId) return;
+
+    const handleScroll = () => {
+      clearScenarioHint();
+    };
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Element)) {
+        clearScenarioHint();
+        return;
+      }
+
+      if (target.closest("[data-slot='tooltip-content']")) return;
+      if (
+        target.closest(`[data-scenario-hint-trigger='${scenarioHintPersonId}']`)
+      ) {
+        return;
+      }
+
+      clearScenarioHint();
+    };
+
+    window.addEventListener("scroll", handleScroll, true);
+
+    // Defer so the click that opened the hint doesn't immediately dismiss it.
+    const timeoutId = window.setTimeout(() => {
+      document.addEventListener("pointerdown", handlePointerDown, true);
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      window.removeEventListener("scroll", handleScroll, true);
+      document.removeEventListener("pointerdown", handlePointerDown, true);
+    };
+  }, [scenarioHintPersonId, clearScenarioHint]);
   const durationLabel = formatCreateEventDuration(startTime, endTime);
 
   const attendeeIds = useMemo(
@@ -497,9 +576,18 @@ export function CreateEventDrawerForm({
   };
 
   const handleOpenAvailableTimes = () => {
+    const isFirstOpen = !availableTimesEverOpened;
+
     setAvailableTimesEverOpened(true);
     setAvailableTimesOpen(true);
     onSelectAvailableSlot(null);
+
+    if (!isFirstOpen) return;
+
+    const hintPersonId = getScenarioHintPersonId(attendees);
+    if (!hintPersonId) return;
+
+    setScenarioHintPersonId(hintPersonId);
   };
 
   const handleSelectAvailableSlot = (slot: AvailableTimeSlot) => {
@@ -553,6 +641,7 @@ export function CreateEventDrawerForm({
     setAvailableTimesEverOpened(false);
     setAvailableTimesLoading(false);
     setAvailableTimesResult(null);
+    clearScenarioHint();
     onSelectAvailableSlot(null);
     setEventTimeFlashKey(0);
   };
@@ -700,106 +789,143 @@ export function CreateEventDrawerForm({
             </div>
 
             <ul className="space-y-1">
-              {attendees.map((attendee) => (
-                <li
-                  key={attendee.id}
-                  className="group/attendee-row flex items-center gap-2 rounded-lg px-1 py-1"
-                >
-                  <PersonAvatar personId={attendee.id} name={attendee.name} />
-                  <span className="flex min-w-0 flex-1 items-center gap-1.5 text-sm text-foreground">
-                    <span className="truncate">{attendee.name}</span>
-                    {attendee.isOrganizer ? (
-                      <span className="shrink-0 text-xs text-muted-foreground">
-                        주최자
+              {attendees.map((attendee) => {
+                const showScenarioHint = scenarioHintPersonId === attendee.id;
+
+                return (
+                  <Tooltip
+                    key={attendee.id}
+                    open={showScenarioHint}
+                    onOpenChange={(nextOpen) => {
+                      if (!nextOpen) clearScenarioHint();
+                    }}
+                  >
+                    <TooltipTrigger
+                      render={
+                        <li
+                          data-scenario-hint-trigger={attendee.id}
+                          className="group/attendee-row flex items-center gap-2 rounded-lg px-1 py-1"
+                        />
+                      }
+                    >
+                      <PersonAvatar
+                        personId={attendee.id}
+                        name={attendee.name}
+                      />
+                      <span className="flex min-w-0 flex-1 items-center gap-1.5 text-sm text-foreground">
+                        <span className="truncate">{attendee.name}</span>
+                        {attendee.isOrganizer ? (
+                          <span className="shrink-0 text-xs text-muted-foreground">
+                            주최자
+                          </span>
+                        ) : attendee.requirement === "optional" ? (
+                          <span className="shrink-0 text-xs text-muted-foreground">
+                            선택 참여
+                          </span>
+                        ) : OPTIONAL_PARTICIPATION_SUGGESTED_PERSON_IDS.has(
+                            attendee.id
+                          ) ? (
+                          <span className="inline-flex shrink-0 items-center rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+                            선택 참여 권장
+                          </span>
+                        ) : null}
                       </span>
-                    ) : attendee.requirement === "optional" ? (
-                      <span className="shrink-0 text-xs text-muted-foreground">
-                        선택 참여
-                      </span>
-                    ) : OPTIONAL_PARTICIPATION_SUGGESTED_PERSON_IDS.has(
-                        attendee.id
-                      ) ? (
-                      <span className="inline-flex shrink-0 items-center rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
-                        선택 참여 권장
-                      </span>
-                    ) : null}
-                  </span>
-                  {attendee.isOrganizer ? null : (
-                    <div className="flex shrink-0 items-center opacity-0 transition-opacity group-hover/attendee-row:opacity-100">
-                      <IconButtonTooltip
-                        label={
-                          attendee.requirement === "required"
-                            ? "선택 참여로 표시"
-                            : "필수로 표시"
-                        }
-                      >
-                        <button
-                          type="button"
-                          aria-label={
-                            attendee.requirement === "required"
-                              ? "선택 참여로 표시"
-                              : "필수로 표시"
-                          }
-                          onClick={(event) => {
-                            toggleAttendeeRequirement(attendee.id);
-                            event.currentTarget.blur();
-                          }}
-                          className={ATTENDEE_ACTION_BUTTON_CLASS}
-                        >
-                          <User
-                            className={cn(
-                              "size-3.5",
-                              attendee.requirement === "required" && "fill-current"
-                            )}
-                          />
-                        </button>
-                      </IconButtonTooltip>
-                      {isCalendarPersonId(attendee.id) ? (
-                        <IconButtonTooltip
-                          label={
-                            attendeeVisibleCalendarIds.has(attendee.id)
-                              ? "일정 숨기기"
-                              : "일정 보이기"
-                          }
-                        >
-                          <button
-                            type="button"
-                            aria-label={
-                              attendeeVisibleCalendarIds.has(attendee.id)
-                                ? "일정 숨기기"
-                                : "일정 보이기"
+                      {attendee.isOrganizer ? null : (
+                        <div className="flex shrink-0 items-center opacity-0 transition-opacity group-hover/attendee-row:opacity-100">
+                          <IconButtonTooltip
+                            label={
+                              attendee.requirement === "required"
+                                ? "선택 참여로 표시"
+                                : "필수로 표시"
                             }
-                            onClick={(event) => {
-                              toggleAttendeeCalendarVisibility(attendee.id);
-                              event.currentTarget.blur();
-                            }}
-                            className={ATTENDEE_ACTION_BUTTON_CLASS}
                           >
-                            {attendeeVisibleCalendarIds.has(attendee.id) ? (
-                              <Eye className="size-3.5" />
-                            ) : (
-                              <EyeOff className="size-3.5" />
-                            )}
-                          </button>
-                        </IconButtonTooltip>
-                      ) : null}
-                      <IconButtonTooltip label="삭제">
+                            <button
+                              type="button"
+                              aria-label={
+                                attendee.requirement === "required"
+                                  ? "선택 참여로 표시"
+                                  : "필수로 표시"
+                              }
+                              onClick={(event) => {
+                                toggleAttendeeRequirement(attendee.id);
+                                event.currentTarget.blur();
+                              }}
+                              className={ATTENDEE_ACTION_BUTTON_CLASS}
+                            >
+                              <User
+                                className={cn(
+                                  "size-3.5",
+                                  attendee.requirement === "required" &&
+                                    "fill-current"
+                                )}
+                              />
+                            </button>
+                          </IconButtonTooltip>
+                          {isCalendarPersonId(attendee.id) ? (
+                            <IconButtonTooltip
+                              label={
+                                attendeeVisibleCalendarIds.has(attendee.id)
+                                  ? "일정 숨기기"
+                                  : "일정 보이기"
+                              }
+                            >
+                              <button
+                                type="button"
+                                aria-label={
+                                  attendeeVisibleCalendarIds.has(attendee.id)
+                                    ? "일정 숨기기"
+                                    : "일정 보이기"
+                                }
+                                onClick={(event) => {
+                                  toggleAttendeeCalendarVisibility(attendee.id);
+                                  event.currentTarget.blur();
+                                }}
+                                className={ATTENDEE_ACTION_BUTTON_CLASS}
+                              >
+                                {attendeeVisibleCalendarIds.has(attendee.id) ? (
+                                  <Eye className="size-3.5" />
+                                ) : (
+                                  <EyeOff className="size-3.5" />
+                                )}
+                              </button>
+                            </IconButtonTooltip>
+                          ) : null}
+                          <IconButtonTooltip label="삭제">
+                            <button
+                              type="button"
+                              aria-label="삭제"
+                              onClick={(event) => {
+                                removeAttendee(attendee.id);
+                                event.currentTarget.blur();
+                              }}
+                              className={ATTENDEE_ACTION_BUTTON_CLASS}
+                            >
+                              <X className="size-3.5" />
+                            </button>
+                          </IconButtonTooltip>
+                        </div>
+                      )}
+                    </TooltipTrigger>
+                    {showScenarioHint ? (
+                      <TooltipContent side="right" sideOffset={8} className="pr-1.5">
+                        <span>{SCENARIO_HINT_LABEL}</span>
                         <button
                           type="button"
-                          aria-label="삭제"
+                          aria-label="안내 닫기"
                           onClick={(event) => {
-                            removeAttendee(attendee.id);
-                            event.currentTarget.blur();
+                            event.preventDefault();
+                            event.stopPropagation();
+                            clearScenarioHint();
                           }}
-                          className={ATTENDEE_ACTION_BUTTON_CLASS}
+                          className="inline-flex size-4 shrink-0 items-center justify-center rounded-sm text-background/70 transition-colors hover:text-background"
                         >
-                          <X className="size-3.5" />
+                          <X className="size-3" />
                         </button>
-                      </IconButtonTooltip>
-                    </div>
-                  )}
-                </li>
-              ))}
+                      </TooltipContent>
+                    ) : null}
+                  </Tooltip>
+                );
+              })}
             </ul>
 
             {hasOnlyOrganizerAttendee ? null : (
