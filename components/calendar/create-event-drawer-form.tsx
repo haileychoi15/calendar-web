@@ -704,21 +704,21 @@ export function CreateEventDrawerForm({
                   className="group/attendee-row flex items-center gap-2 rounded-lg px-1 py-1"
                 >
                   <PersonAvatar personId={attendee.id} name={attendee.name} />
-                  <span className="min-w-0 flex-1 truncate text-sm text-foreground">
-                    {attendee.name}
+                  <span className="flex min-w-0 flex-1 items-center gap-1.5 text-sm text-foreground">
+                    <span className="truncate">{attendee.name}</span>
                     {attendee.isOrganizer ? (
-                      <span className="ml-1.5 text-xs text-muted-foreground">
+                      <span className="shrink-0 text-xs text-muted-foreground">
                         주최자
                       </span>
                     ) : attendee.requirement === "optional" ? (
-                      <span className="ml-1.5 text-xs text-muted-foreground">
+                      <span className="shrink-0 text-xs text-muted-foreground">
                         선택 참여
                       </span>
                     ) : OPTIONAL_PARTICIPATION_SUGGESTED_PERSON_IDS.has(
                         attendee.id
                       ) ? (
-                      <span className="ml-1.5 text-xs text-muted-foreground">
-                        (선택 참여 권장)
+                      <span className="inline-flex shrink-0 items-center rounded-md bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">
+                        선택 참여 권장
                       </span>
                     ) : null}
                   </span>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PersonAvatar } from "@/components/calendar/person-avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronDown, ChevronUp } from "lucide-react";
@@ -13,6 +13,9 @@ import {
   type AvailableTimesResult,
 } from "@/lib/available-times";
 import { cn } from "@/lib/utils";
+
+/** Ignore brief mouse passes; only intentional dwell moves the week calendar. */
+const AVAILABLE_TIME_CARD_HOVER_DELAY_MS = 200;
 
 type AvailableTimeSlotSkeletonProps = {
   className?: string;
@@ -77,6 +80,19 @@ function AvailableTimeSlotItem({
     slot.kind === "all" ? "var(--green400)" : "var(--yellow400)";
   const unavailableCount = slot.unavailableOptionalAttendees.length;
   const daysEarlier = getDaysEarlierThanAllAvailable(slot, earliestAllDateKey);
+  const hoverTimeoutRef = useRef<number | null>(null);
+
+  const clearHoverTimeout = () => {
+    if (hoverTimeoutRef.current === null) return;
+    window.clearTimeout(hoverTimeoutRef.current);
+    hoverTimeoutRef.current = null;
+  };
+
+  useEffect(() => {
+    return () => {
+      clearHoverTimeout();
+    };
+  }, []);
 
   return (
     <label
@@ -84,11 +100,20 @@ function AvailableTimeSlotItem({
         "flex cursor-pointer items-start gap-2 rounded-md border-2 px-3 py-2.5 transition-[border-color,border-style,background-color]",
         selected
           ? "border-solid border-primary bg-muted/40"
-          : cn("border-dashed", isHovered && "bg-muted")
+          : cn("border-dashed hover:bg-muted", isHovered && "bg-muted")
       )}
       style={selected ? undefined : { borderColor: accentColor }}
-      onMouseEnter={onHover}
-      onMouseLeave={onHoverEnd}
+      onMouseEnter={() => {
+        clearHoverTimeout();
+        hoverTimeoutRef.current = window.setTimeout(() => {
+          hoverTimeoutRef.current = null;
+          onHover();
+        }, AVAILABLE_TIME_CARD_HOVER_DELAY_MS);
+      }}
+      onMouseLeave={() => {
+        clearHoverTimeout();
+        onHoverEnd();
+      }}
     >
       <input
         type="radio"
